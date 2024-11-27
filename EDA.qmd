@@ -1,0 +1,361 @@
+---
+title: "FinalProjectEDA"
+author: "Matthew Corne"
+date: "12-05-2024"
+format: html
+editor: visual
+---
+
+## Introduction
+
+We will explore the Centers for Disease Control and Prevention (CDC) Behavioral Risk Factor Surveillance System (BRFSS) data set of diabetes binary health indicators from 2015.  Two questions that we would like to address in this exploratory data analysis:
+
+1.  Which factors are most predictive of diabetes risk?
+1.  Can we use a subset of the risk factors to accurately predict whether an individual has diabetes?
+
+
+
+## Read In The Data
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(vroom)
+#diabetes_binary_health_indicators_BRFSS2015.csv
+
+data <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+data
+
+```
+
+## Determine The Rate of Missing Values
+
+```{r}
+#The `echo: false` option disables the printing of code (only output is displayed).
+data |>
+  is.na() |>
+  colSums()
+
+```
+The sums are 0 for each column, so there is no missing data.
+
+
+## How The Data Is Stored
+
+We will check for column type and values.
+
+```{r}
+#readr::spec(data)
+attributes(data)$spec
+```
+
+## Basic Data Validation
+
+Summarize each column to see if there are any unusual values.
+
+```{r}
+summary(data)
+```
+
+It appears that BMI is given as a percentile (otherwise, 98 would be quite high).  We have a number of categorical variables that would be good to convert to factors.
+
+```{r}
+data <- data |>
+  mutate(Diabetes_binary=
+           factor(Diabetes_binary,
+                  levels=c("0","1"),
+                  labels=c("no diabetes","prediabetes or diabetes")),
+         HighBP=
+           factor(HighBP,
+                  levels=c("0","1"),
+                  labels=c("no high BP","high BP")),
+         HighChol=
+           factor(HighChol,
+                  levels=c("0","1"),
+                  labels=c("no high cholesterol","high cholesterol")),
+         CholCheck=
+           factor(CholCheck,
+                  levels=c("0","1"),
+                  labels=c("no cholesterol check in 5 years","yes cholesterol check in 5 years")),
+         #BMI=factor(BMI),
+         Smoker=
+           factor(Smoker,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Stroke=
+           factor(Stroke,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         HeartDiseaseorAttack=
+           factor(HeartDiseaseorAttack,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         PhysActivity=
+           factor(PhysActivity,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Fruits=
+           factor(Fruits,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Veggies=
+           factor(Veggies,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         HvyAlcoholConsump=
+           factor(HvyAlcoholConsump,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         AnyHealthcare=
+           factor(AnyHealthcare,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         NoDocbcCost=
+           factor(NoDocbcCost,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         GenHlth=
+           factor(GenHlth,
+                  levels=c("1","2","3","4","5"),
+                  labels=c("excellent","very good","good","fair","poor")),
+         #MentHlth=
+           #factor(MentHlth),
+         #PhysHlth=
+           #factor(PhysHlth),
+         DiffWalk=
+           factor(DiffWalk,
+                  levels=c("0","1"),
+                  labels=c("no difficulty walking","yes difficulty walking")),
+         Sex=
+           factor(Sex,
+                  levels=c("0","1"),
+                  labels=c("female","male")),
+         Age=
+           factor(Age,
+                  levels=c("1","2","3","4","5","6","7","8","9","10","11","12","13"),
+                  labels=c("18 to 24","25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64","65 to 69","70 to 74","75 to 79","80 or older")),
+         Education=
+           factor(Education,
+                  levels=c("1","2","3","4","5","6"),
+                  labels=c("Never attended school or only kindergarten","Grades 1 through 8 (Elementary)","Grades 9 through 11 (Some high school)","Grade 12 or GED (High school graduate)","College 1 year to 3 years (Some college or technical school)","College 4 years or more (College graduate)")),
+         Income=
+           factor(Income,
+                  levels=c("1","2","3","4","5","6","7","8"),
+                  labels=c("Less than $10,000","$10,000 to less than $15,000","$15,000 to less than $20,000","$20,000 to less than $25,000","$25,000 to less than $35,000","$35,000 to less than $50,000","$50,000 to less than $75,000","$75,000 or more"))
+         )
+
+```
+
+## Clean Up Data As Needed
+
+```{r}
+
+```
+
+## Investigate Distributions
+
+### Contingency Tables
+
+We will examine one-, two-, and three-way contingency tables.  For the one-way contingency table related to the diabetes status of respondents:
+
+```{r}
+#One-way contingency table
+table(data$Diabetes_binary)
+
+```
+For the two-way contingency tables:
+
+```{r}
+#Two-way contingency tables
+table(data$Sex,data$Diabetes_binary)
+table(data$Age,data$Diabetes_binary)
+table(data$Education,data$Diabetes_binary)
+table(data$Income,data$Diabetes_binary)
+table(data$GenHlth,data$Diabetes_binary)
+table(data$Smoker,data$Diabetes_binary)
+table(data$HvyAlcoholConsump,data$Diabetes_binary)
+#table(data$MentHlth,data$Diabetes_binary)
+#table(data$PhysHlth,data$Diabetes_binary)
+tbl <- table(data$DiffWalk,data$Diabetes_binary)
+prop.table(tbl,margin=1)
+
+```
+
+For three-way contingency tables:
+
+```{r}
+#Three-way contingency tables
+tbl <- table(data$Age,data$DiffWalk,data$Diabetes_binary)
+table(data$Smoker,data$HvyAlcoholConsump,data$Diabetes_binary)
+```
+
+
+We can get the proportions of non-diabetic people who have difficulty walking, by age bracket:
+```{r}
+prop.table(tbl[, , "no diabetes"],margin=1)
+
+```
+
+We can get the proportions of prediabetic or diabetic people who have difficulty walking, by age bracket:
+
+```{r}
+prop.table(tbl[, , "prediabetes or diabetes"],margin=1)
+
+```
+
+We will summarize our numeric variables:
+
+```{r}
+summary(data |>
+          select(where(is.numeric)))
+
+summary(data |>
+          filter(Diabetes_binary == "no diabetes") |>
+          select(where(is.numeric)))
+
+summary(data |>
+          filter(Diabetes_binary == "prediabetes or diabetes") |>
+          select(where(is.numeric)))
+
+```
+
+
+We will examine correlations among our numeric variables:
+
+```{r}
+data |>
+  select(where(is.numeric)) |>
+  cor() |>
+  round(3)
+
+data |>
+  filter(Diabetes_binary == "no diabetes") |>
+  select(where(is.numeric)) |>
+  cor() |>
+  round(3)
+  
+data |>
+  filter(Diabetes_binary == "prediabetes or diabetes") |>
+  select(where(is.numeric)) |>
+  cor() |>
+  round(3)
+
+```
+
+
+### Bar Charts & Heatmaps
+
+We will look at bar charts and heatmaps relating diabetes status and walking difficulty across different age brackets:
+
+```{r}
+ggplot(data, 
+       aes(
+         x = Diabetes_binary, fill = DiffWalk)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("DiffWalk") +
+  facet_wrap(~ Age)
+
+data |> 
+  count(Age, DiffWalk, Diabetes_binary) |>  
+  ggplot(aes(x = DiffWalk, y = Diabetes_binary)) +
+  geom_tile(aes(fill = n)) +
+  facet_wrap(~ Age)
+
+```
+
+We will also look for relationships between diabetes status, smoking, and alcohol consumption across age brackets:
+
+```{r}
+data |> 
+  count(Age, Smoker, Diabetes_binary) |>  
+  ggplot(aes(x = Smoker, y = Diabetes_binary)) +
+  geom_tile(aes(fill = n)) +
+  scale_fill_gradientn(colours = c("#E69F00", "#56B4E9"), values = c(0,0.3,1)) +
+  facet_wrap(~ Age)
+
+data |> 
+  count(Age, HvyAlcoholConsump, Diabetes_binary) |>  
+  ggplot(aes(x = HvyAlcoholConsump, y = Diabetes_binary)) +
+  geom_tile(aes(fill = n)) +
+  scale_fill_gradientn(colours = c("#E69F00", "#56B4E9"), values = c(0,0.3,1)) +
+  facet_wrap(~ Age)
+
+```
+
+
+### Scatterplots & Histograms For Numeric Variables
+
+We will examine the relationship between the number of days of poor mental health (in the past 30 days) and the number of days of physical illness or injury (in the past 30 days):
+
+```{r}
+  ggplot(data |> filter(Age == "18 to 24"),
+         aes(
+           x=PhysHlth,y=MentHlth,color=GenHlth)) +
+  geom_point(size=0.01) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  geom_smooth(method = lm)
+
+```
+
+Next, we will examine the relationship of each of these to BMI:
+
+```{r}
+ggplot(data,
+         aes(
+           x=BMI,y=PhysHlth)) +
+  geom_point() +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  geom_smooth(method = lm)
+  
+  ggplot(data,
+         aes(
+           x=BMI,y=MentHlth)) +
+  geom_point() +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  geom_smooth(method = lm)
+  
+```
+
+Then, we will examine the distributions of PhysHlth, MentHlth, and BMI based on whether individuals have diabetes.
+
+```{r}
+ggplot(data |> filter(PhysHlth > 1 & PhysHlth < 30),
+       aes(
+         x=PhysHlth
+       )) + 
+  geom_histogram(alpha=0.5,
+    aes(y=..density..,
+        fill = Diabetes_binary, 
+        col=I("black")),
+    position = "identity",
+    binwidth=1) + 
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("PhysHlth") + ylab("Count") + ggtitle(str_wrap("Number of Respondents per Number of Days of Physical Illness or Injury, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(MentHlth > 1 & MentHlth < 30),
+       aes(
+         x=MentHlth
+       )) + 
+  geom_histogram(alpha=0.5,
+    aes(y=..density..,
+        fill = Diabetes_binary, 
+        col=I("black")),
+    position = "identity",
+    binwidth=1) + 
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("MentHlth") + ylab("Count") + ggtitle(str_wrap("Number of Respondents per Number of Poor Mental Health Days, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data,
+       aes(
+         x=BMI
+       )) + 
+  geom_histogram(alpha=0.5,
+    aes(y=..density..,
+        fill = Diabetes_binary, 
+        col=I("black")),
+    position = "identity",
+    binwidth=1) + 
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("BMI") + ylab("Count") + ggtitle(str_wrap("Number of Respondents per BMI, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data) +
+geom_boxplot(aes(x = Sex, y = BMI, fill = Diabetes_binary)) + scale_fill_manual(values=c("#E69F00", "#56B4E9"))
+```
+
