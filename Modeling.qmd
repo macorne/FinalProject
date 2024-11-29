@@ -1,0 +1,186 @@
+---
+title: "Modeling"
+author: "Matthew Corne"
+date: "12-05-2024"
+format: html
+editor: visual
+---
+
+## Introduction
+
+Write an intro!  We will include (at least) 5 predictors in this model:  
+
+We will load the libraries and read in the data here:
+```{r}
+library(baguette)
+library(corrplot)
+library(ggplot2)
+library(glmnet)
+library(lubridate)
+library(ranger)
+#library(randomForest)
+library(stringr)
+library(tidymodels)
+library(tidyverse)
+library(vip)
+
+#diabetes_binary_health_indicators_BRFSS2015.csv
+
+data <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+data
+
+```
+
+Next, we will convert variables to factor variables, where appropriate:
+
+```{r}
+data <- data |>
+  mutate(Diabetes_binary=
+           factor(Diabetes_binary,
+                  levels=c("0","1"),
+                  labels=c("no diabetes","prediabetes or diabetes")),
+         HighBP=
+           factor(HighBP,
+                  levels=c("0","1"),
+                  labels=c("no high BP","high BP")),
+         HighChol=
+           factor(HighChol,
+                  levels=c("0","1"),
+                  labels=c("no high cholesterol","high cholesterol")),
+         CholCheck=
+           factor(CholCheck,
+                  levels=c("0","1"),
+                  labels=c("no cholesterol check in 5 years","yes cholesterol check in 5 years")),
+         #BMI=factor(BMI),
+         Smoker=
+           factor(Smoker,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Stroke=
+           factor(Stroke,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         HeartDiseaseorAttack=
+           factor(HeartDiseaseorAttack,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         PhysActivity=
+           factor(PhysActivity,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Fruits=
+           factor(Fruits,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Veggies=
+           factor(Veggies,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         HvyAlcoholConsump=
+           factor(HvyAlcoholConsump,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         AnyHealthcare=
+           factor(AnyHealthcare,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         NoDocbcCost=
+           factor(NoDocbcCost,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         GenHlth=
+           factor(GenHlth,
+                  levels=c("1","2","3","4","5"),
+                  labels=c("excellent","very good","good","fair","poor")),
+         #MentHlth=
+           #factor(MentHlth),
+         #PhysHlth=
+           #factor(PhysHlth),
+         DiffWalk=
+           factor(DiffWalk,
+                  levels=c("0","1"),
+                  labels=c("no difficulty walking","yes difficulty walking")),
+         Sex=
+           factor(Sex,
+                  levels=c("0","1"),
+                  labels=c("female","male")),
+         Age=
+           factor(Age,
+                  levels=c("1","2","3","4","5","6","7","8","9","10","11","12","13"),
+                  labels=c("18 to 24","25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64","65 to 69","70 to 74","75 to 79","80 or older")),
+         Education=
+           factor(Education,
+                  levels=c("1","2","3","4","5","6"),
+                  labels=c("Never attended school or only kindergarten","Grades 1 through 8 (Elementary)","Grades 9 through 11 (Some high school)","Grade 12 or GED (High school graduate)","College 1 year to 3 years (Some college or technical school)","College 4 years or more (College graduate)")),
+         Income=
+           factor(Income,
+                  levels=c("1","2","3","4","5","6","7","8"),
+                  labels=c("Less than $10,000","$10,000 to less than $15,000","$15,000 to less than $20,000","$20,000 to less than $25,000","$25,000 to less than $35,000","$35,000 to less than $50,000","$50,000 to less than $75,000","$75,000 or more"))
+         )
+
+```
+
+
+## Split the Data
+
+Set the seed.  Then, use functions from tidymodels to split the data into a training and test set (70/30 split). Then, use the strata argument to stratify the split on the `Seasons` variable.
+
+```{r}
+set.seed(11)
+data_split <- initial_split(data, prop = 0.70) #strata = argument goes in the parentheses, if needed
+data_train <- training(data_split)
+data_test <- testing(data_split)
+
+```
+
+We will perform 5-fold cross validation:
+
+```{r}
+data_5_fold <- vfold_cv(data_train, 5)
+
+```
+
+## Models
+
+We will consider two kinds of models:  classification tree and random forest.  We will ...
+
+Get a recipe.  Use the `date` variable to create a weekday/weekend factor variable. Then, standardize the numeric variables since their scales are pretty different. Finally, create dummy variables for the seasons, holiday, and new day type variable.
+
+```{r}
+data_recipe <- recipe(Rented_Bike_Count ~ ., data = data_train) |>
+  step_date(Date, features = "dow") |>
+  step_mutate(WW = factor(ifelse(Date_dow %in% c("Sat","Sun"),"weekend","weekday"))) |> #ww=weekend/weekday
+  step_rm(Date, Date_dow) |>
+  step_dummy(Seasons, Holiday, WW) |>
+  step_normalize(all_numeric(),-Rented_Bike_Count) #|>
+#  prep(training = bike_train) |>
+#  bake(bike_train)
+
+#bike_recipe1
+
+```
+
+### Classification Tree
+
+You should provide a thorough explanation of what a classification tree model is. Then you should fit a classification tree with varying values for the complexity parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.
+
+```{r}
+
+```
+
+### Random Forest
+
+You should provide a thorough explanation of what a random forest is and why we might use it (be sure to relate this to a basic classification tree). You should then fit a random forest model with varying values for the `mtry` parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.
+
+```{r}
+
+```
+
+## Final Model Selection
+
+We will compare the best models from each of the approaches on the test set and declare an overall winner:
+
+```{r}
+
+```
+
