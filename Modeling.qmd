@@ -8,7 +8,7 @@ editor: visual
 
 ## Introduction
 
-Write an intro!  We will include (at least) 5 predictors in this model:  
+Write an intro!  We will include (at least) 5 predictors in this model:  age, sex, income, smoker, and heart disease or attack.
 
 We will load the libraries and read in the data here:
 ```{r}
@@ -23,9 +23,10 @@ library(stringr)
 library(tidymodels)
 library(tidyverse)
 library(vip)
+library(vroom)
 
 #diabetes_binary_health_indicators_BRFSS2015.csv
-
+#dbhi = diabetes binary health indicators
 data <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
 data
 
@@ -120,6 +121,15 @@ data <- data |>
 
 ```
 
+Now, subset the data to look at the 5 predictors:
+
+```{r}
+dbhi_data <- data #|> 
+#  select(Diabetes_binary,Age,HeartDiseaseorAttack,Income,Sex,Smoker)
+dbhi_data
+
+```
+
 
 ## Split the Data
 
@@ -127,16 +137,16 @@ Set the seed.  Then, use functions from tidymodels to split the data into a trai
 
 ```{r}
 set.seed(11)
-data_split <- initial_split(data, prop = 0.70) #strata = argument goes in the parentheses, if needed
-data_train <- training(data_split)
-data_test <- testing(data_split)
+dbhi_split <- initial_split(dbhi_data, prop = 0.70) #strata = argument goes in the parentheses, if needed
+dbhi_train <- training(dbhi_split)
+dbhi_test <- testing(dbhi_split)
 
 ```
 
 We will perform 5-fold cross validation:
 
 ```{r}
-data_5_fold <- vfold_cv(data_train, 5)
+dbhi_5_fold <- vfold_cv(dbhi_train, 5)
 
 ```
 
@@ -144,19 +154,23 @@ data_5_fold <- vfold_cv(data_train, 5)
 
 We will consider two kinds of models:  classification tree and random forest.  We will ...
 
-Get a recipe.  Use the `date` variable to create a weekday/weekend factor variable. Then, standardize the numeric variables since their scales are pretty different. Finally, create dummy variables for the seasons, holiday, and new day type variable.
+Get a recipe.  Use the `date` variable to create a weekday/weekend factor variable. Then, standardize the numeric variables since their scales are pretty different. Finally, create dummy variables for the predictors since they need to be numeric (again).
 
 ```{r}
-data_recipe <- recipe(Rented_Bike_Count ~ ., data = data_train) |>
-  step_date(Date, features = "dow") |>
-  step_mutate(WW = factor(ifelse(Date_dow %in% c("Sat","Sun"),"weekend","weekday"))) |> #ww=weekend/weekday
-  step_rm(Date, Date_dow) |>
-  step_dummy(Seasons, Holiday, WW) |>
-  step_normalize(all_numeric(),-Rented_Bike_Count) #|>
-#  prep(training = bike_train) |>
-#  bake(bike_train)
+#bystanders <- colnames(dbhi_data)[c(2:4,7:18,21)]
+#bystanders
 
-#bike_recipe1
+#dbhi_train
+#Diabetes_binary ~ Age + BMI + Income + Sex + Smoker
+dbhi_recipe <- recipe(Diabetes_binary ~ ., data = dbhi_train) |>
+  update_role(HighBP,HighChol,CholCheck,Stroke,HeartDiseaseorAttack,PhysActivity,Fruits,Veggies,HvyAlcoholConsump,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") |>
+  step_dummy(all_nominal_predictors()) |>
+  step_normalize(all_numeric(), -all_outcomes()) #|>
+#  summary()
+#  prep(training = dbhi_train) |>
+#  bake(dbhi_train)
+
+dbhi_recipe
 
 ```
 
@@ -164,9 +178,71 @@ data_recipe <- recipe(Rented_Bike_Count ~ ., data = data_train) |>
 
 You should provide a thorough explanation of what a classification tree model is. Then you should fit a classification tree with varying values for the complexity parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.
 
+First, tell `tidymodels` that we are performing a classification task:
+
 ```{r}
+tree_mod <- decision_tree(tree_depth = tune(),
+                          min_n = 20,
+                          cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("classification")
 
 ```
+
+Next, create a workflow to use in the fitting process:
+
+```{r}
+tree_wkf <- workflow() |>
+  add_recipe(dbhi_recipe) |>
+  add_model(tree_mod)
+
+```
+
+Then, to create the tuning grid for fitting our models, we use cross validation (CV) to select the tuning parameters:
+
+```{r}
+#temp <- tree_wkf |> 
+#  tune_grid(resamples = dbhi_5_fold, metrics=metric_set(mn_log_loss))
+#temp |> 
+#  collect_metrics()
+
+```
+
+```{r}
+tree_grid <- grid_regular(cost_complexity(),
+                          tree_depth(),
+                          levels = c(10, 5))
+
+```
+
+```{r}
+tree_fits <- tree_wkf |> 
+  tune_grid(resamples = dbhi_5_fold,
+            metrics=metric_set(mn_log_loss),
+            grid = tree_grid)
+tree_fits |>
+  collect_metrics()
+
+```
+
+
+Combine the metrics across the folds, then plot:
+
+```{r}
+tree_fits |>
+  collect_metrics() |>
+  mutate(tree_depth = factor(tree_depth)) |>
+  ggplot(aes(cost_complexity, mean, color = tree_depth)) +
+  geom_line(size = 1.5, alpha = 0.6) +
+  geom_point(size = 2) +
+  facet_wrap(~ .metric, scales = "free", nrow = 2) +
+  scale_x_log10(labels = scales::label_number()) +
+  scale_color_viridis_d(option = "plasma", begin = .9, end = 0)
+
+tree_fits
+
+```
+
 
 ### Random Forest
 
