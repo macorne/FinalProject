@@ -149,7 +149,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>Write an intro! We will include (at least) 5 predictors in this model: age, sex, income, smoker, and heart disease or attack.</p>
+<p>Write an intro! We will include (at least) 5 predictors in this model: (ORIGINALS! age, sex, income, smoker, and heart disease or attack) sex, income, stroke, heart disease or attack, and heavy alcohol consumption.</p>
 <p>We will load the libraries and read in the data here:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(baguette)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -205,7 +205,7 @@ Attaching package: 'lubridate'</code></pre>
 ✖ recipes::step()   masks stats::step()
 ✖ tidyr::unpack()   masks Matrix::unpack()
 ✖ recipes::update() masks Matrix::update(), stats::update()
-• Use suppressPackageStartupMessages() to eliminate package startup messages</code></pre>
+• Dig deeper into tidy modeling with R at https://www.tmwr.org</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -234,9 +234,31 @@ The following object is masked from 'package:utils':
 
     vi</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#diabetes_binary_health_indicators_BRFSS2015.csv</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">#dbhi = diabetes binary health indicators</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>dbhi_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"diabetes_binary_health_indicators_BRFSS2015.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vroom)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'vroom'
+
+The following objects are masked from 'package:readr':
+
+    as.col_spec, col_character, col_date, col_datetime, col_double,
+    col_factor, col_guess, col_integer, col_logical, col_number,
+    col_skip, col_time, cols, cols_condense, cols_only, date_names,
+    date_names_lang, date_names_langs, default_locale, fwf_cols,
+    fwf_empty, fwf_positions, fwf_widths, locale, output_column,
+    problems, spec
+
+The following object is masked from 'package:yardstick':
+
+    spec
+
+The following object is masked from 'package:scales':
+
+    col_factor</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#diabetes_binary_health_indicators_BRFSS2015.csv</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">#dbhi = diabetes binary health indicators</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"diabetes_binary_health_indicators_BRFSS2015.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Rows: 253680 Columns: 22
 ── Column specification ────────────────────────────────────────────────────────
@@ -246,7 +268,7 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>dbhi_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 253,680 × 22
    Diabetes_binary HighBP HighChol CholCheck   BMI Smoker Stroke
@@ -270,136 +292,575 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </div>
 <p>Next, we will convert variables to factor variables, where appropriate:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>dbhi_data <span class="ot">&lt;-</span> dbhi_data <span class="sc">|&gt;</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Diabetes_binary=</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Diabetes_binary,</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no diabetes"</span>,<span class="st">"prediabetes or diabetes"</span>)),</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">HighBP=</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HighBP,</span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no high BP"</span>,<span class="st">"high BP"</span>)),</span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">HighChol=</span></span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HighChol,</span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no high cholesterol"</span>,<span class="st">"high cholesterol"</span>)),</span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">CholCheck=</span></span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(CholCheck,</span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no cholesterol check in 5 years"</span>,<span class="st">"yes cholesterol check in 5 years"</span>)),</span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>         <span class="co">#BMI=factor(BMI),</span></span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">Smoker=</span></span>
-<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Smoker,</span>
-<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">Stroke=</span></span>
-<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Stroke,</span>
-<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>         <span class="at">HeartDiseaseorAttack=</span></span>
-<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HeartDiseaseorAttack,</span>
-<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">PhysActivity=</span></span>
-<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(PhysActivity,</span>
-<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a>         <span class="at">Fruits=</span></span>
-<span id="cb24-36"><a href="#cb24-36" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Fruits,</span>
-<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a>         <span class="at">Veggies=</span></span>
-<span id="cb24-40"><a href="#cb24-40" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Veggies,</span>
-<span id="cb24-41"><a href="#cb24-41" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-42"><a href="#cb24-42" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a>         <span class="at">HvyAlcoholConsump=</span></span>
-<span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HvyAlcoholConsump,</span>
-<span id="cb24-45"><a href="#cb24-45" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-46"><a href="#cb24-46" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-47"><a href="#cb24-47" aria-hidden="true" tabindex="-1"></a>         <span class="at">AnyHealthcare=</span></span>
-<span id="cb24-48"><a href="#cb24-48" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(AnyHealthcare,</span>
-<span id="cb24-49"><a href="#cb24-49" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-50"><a href="#cb24-50" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-51"><a href="#cb24-51" aria-hidden="true" tabindex="-1"></a>         <span class="at">NoDocbcCost=</span></span>
-<span id="cb24-52"><a href="#cb24-52" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(NoDocbcCost,</span>
-<span id="cb24-53"><a href="#cb24-53" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-54"><a href="#cb24-54" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb24-55"><a href="#cb24-55" aria-hidden="true" tabindex="-1"></a>         <span class="at">GenHlth=</span></span>
-<span id="cb24-56"><a href="#cb24-56" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(GenHlth,</span>
-<span id="cb24-57"><a href="#cb24-57" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>),</span>
-<span id="cb24-58"><a href="#cb24-58" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"excellent"</span>,<span class="st">"very good"</span>,<span class="st">"good"</span>,<span class="st">"fair"</span>,<span class="st">"poor"</span>)),</span>
-<span id="cb24-59"><a href="#cb24-59" aria-hidden="true" tabindex="-1"></a>         <span class="co">#MentHlth=</span></span>
-<span id="cb24-60"><a href="#cb24-60" aria-hidden="true" tabindex="-1"></a>           <span class="co">#factor(MentHlth),</span></span>
-<span id="cb24-61"><a href="#cb24-61" aria-hidden="true" tabindex="-1"></a>         <span class="co">#PhysHlth=</span></span>
-<span id="cb24-62"><a href="#cb24-62" aria-hidden="true" tabindex="-1"></a>           <span class="co">#factor(PhysHlth),</span></span>
-<span id="cb24-63"><a href="#cb24-63" aria-hidden="true" tabindex="-1"></a>         <span class="at">DiffWalk=</span></span>
-<span id="cb24-64"><a href="#cb24-64" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(DiffWalk,</span>
-<span id="cb24-65"><a href="#cb24-65" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-66"><a href="#cb24-66" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no difficulty walking"</span>,<span class="st">"yes difficulty walking"</span>)),</span>
-<span id="cb24-67"><a href="#cb24-67" aria-hidden="true" tabindex="-1"></a>         <span class="at">Sex=</span></span>
-<span id="cb24-68"><a href="#cb24-68" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Sex,</span>
-<span id="cb24-69"><a href="#cb24-69" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb24-70"><a href="#cb24-70" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"female"</span>,<span class="st">"male"</span>)),</span>
-<span id="cb24-71"><a href="#cb24-71" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age=</span></span>
-<span id="cb24-72"><a href="#cb24-72" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Age,</span>
-<span id="cb24-73"><a href="#cb24-73" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"7"</span>,<span class="st">"8"</span>,<span class="st">"9"</span>,<span class="st">"10"</span>,<span class="st">"11"</span>,<span class="st">"12"</span>,<span class="st">"13"</span>),</span>
-<span id="cb24-74"><a href="#cb24-74" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"18 to 24"</span>,<span class="st">"25 to 29"</span>,<span class="st">"30 to 34"</span>,<span class="st">"35 to 39"</span>,<span class="st">"40 to 44"</span>,<span class="st">"45 to 49"</span>,<span class="st">"50 to 54"</span>,<span class="st">"55 to 59"</span>,<span class="st">"60 to 64"</span>,<span class="st">"65 to 69"</span>,<span class="st">"70 to 74"</span>,<span class="st">"75 to 79"</span>,<span class="st">"80 or older"</span>)),</span>
-<span id="cb24-75"><a href="#cb24-75" aria-hidden="true" tabindex="-1"></a>         <span class="at">Education=</span></span>
-<span id="cb24-76"><a href="#cb24-76" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Education,</span>
-<span id="cb24-77"><a href="#cb24-77" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>),</span>
-<span id="cb24-78"><a href="#cb24-78" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Never attended school or only kindergarten"</span>,<span class="st">"Grades 1 through 8 (Elementary)"</span>,<span class="st">"Grades 9 through 11 (Some high school)"</span>,<span class="st">"Grade 12 or GED (High school graduate)"</span>,<span class="st">"College 1 year to 3 years (Some college or technical school)"</span>,<span class="st">"College 4 years or more (College graduate)"</span>)),</span>
-<span id="cb24-79"><a href="#cb24-79" aria-hidden="true" tabindex="-1"></a>         <span class="at">Income=</span></span>
-<span id="cb24-80"><a href="#cb24-80" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Income,</span>
-<span id="cb24-81"><a href="#cb24-81" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"7"</span>,<span class="st">"8"</span>),</span>
-<span id="cb24-82"><a href="#cb24-82" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Less than $10,000"</span>,<span class="st">"$10,000 to less than $15,000"</span>,<span class="st">"$15,000 to less than $20,000"</span>,<span class="st">"$20,000 to less than $25,000"</span>,<span class="st">"$25,000 to less than $35,000"</span>,<span class="st">"$35,000 to less than $50,000"</span>,<span class="st">"$50,000 to less than $75,000"</span>,<span class="st">"$75,000 or more"</span>))</span>
-<span id="cb24-83"><a href="#cb24-83" aria-hidden="true" tabindex="-1"></a>         )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Diabetes_binary=</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Diabetes_binary,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no diabetes"</span>,<span class="st">"prediabetes or diabetes"</span>)),</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">HighBP=</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HighBP,</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no high BP"</span>,<span class="st">"high BP"</span>)),</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">HighChol=</span></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HighChol,</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no high cholesterol"</span>,<span class="st">"high cholesterol"</span>)),</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">CholCheck=</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(CholCheck,</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no cholesterol check in 5 years"</span>,<span class="st">"yes cholesterol check in 5 years"</span>)),</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>         <span class="co">#BMI=factor(BMI),</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">Smoker=</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Smoker,</span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">Stroke=</span></span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Stroke,</span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>         <span class="at">HeartDiseaseorAttack=</span></span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HeartDiseaseorAttack,</span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">PhysActivity=</span></span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(PhysActivity,</span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>         <span class="at">Fruits=</span></span>
+<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Fruits,</span>
+<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>         <span class="at">Veggies=</span></span>
+<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Veggies,</span>
+<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>         <span class="at">HvyAlcoholConsump=</span></span>
+<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HvyAlcoholConsump,</span>
+<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a>         <span class="at">AnyHealthcare=</span></span>
+<span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(AnyHealthcare,</span>
+<span id="cb26-49"><a href="#cb26-49" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-50"><a href="#cb26-50" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-51"><a href="#cb26-51" aria-hidden="true" tabindex="-1"></a>         <span class="at">NoDocbcCost=</span></span>
+<span id="cb26-52"><a href="#cb26-52" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(NoDocbcCost,</span>
+<span id="cb26-53"><a href="#cb26-53" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-54"><a href="#cb26-54" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb26-55"><a href="#cb26-55" aria-hidden="true" tabindex="-1"></a>         <span class="at">GenHlth=</span></span>
+<span id="cb26-56"><a href="#cb26-56" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(GenHlth,</span>
+<span id="cb26-57"><a href="#cb26-57" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>),</span>
+<span id="cb26-58"><a href="#cb26-58" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"excellent"</span>,<span class="st">"very good"</span>,<span class="st">"good"</span>,<span class="st">"fair"</span>,<span class="st">"poor"</span>)),</span>
+<span id="cb26-59"><a href="#cb26-59" aria-hidden="true" tabindex="-1"></a>         <span class="co">#MentHlth=</span></span>
+<span id="cb26-60"><a href="#cb26-60" aria-hidden="true" tabindex="-1"></a>           <span class="co">#factor(MentHlth),</span></span>
+<span id="cb26-61"><a href="#cb26-61" aria-hidden="true" tabindex="-1"></a>         <span class="co">#PhysHlth=</span></span>
+<span id="cb26-62"><a href="#cb26-62" aria-hidden="true" tabindex="-1"></a>           <span class="co">#factor(PhysHlth),</span></span>
+<span id="cb26-63"><a href="#cb26-63" aria-hidden="true" tabindex="-1"></a>         <span class="at">DiffWalk=</span></span>
+<span id="cb26-64"><a href="#cb26-64" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(DiffWalk,</span>
+<span id="cb26-65"><a href="#cb26-65" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-66"><a href="#cb26-66" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no difficulty walking"</span>,<span class="st">"yes difficulty walking"</span>)),</span>
+<span id="cb26-67"><a href="#cb26-67" aria-hidden="true" tabindex="-1"></a>         <span class="at">Sex=</span></span>
+<span id="cb26-68"><a href="#cb26-68" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Sex,</span>
+<span id="cb26-69"><a href="#cb26-69" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb26-70"><a href="#cb26-70" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"female"</span>,<span class="st">"male"</span>)),</span>
+<span id="cb26-71"><a href="#cb26-71" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age=</span></span>
+<span id="cb26-72"><a href="#cb26-72" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Age,</span>
+<span id="cb26-73"><a href="#cb26-73" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"7"</span>,<span class="st">"8"</span>,<span class="st">"9"</span>,<span class="st">"10"</span>,<span class="st">"11"</span>,<span class="st">"12"</span>,<span class="st">"13"</span>),</span>
+<span id="cb26-74"><a href="#cb26-74" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"18 to 24"</span>,<span class="st">"25 to 29"</span>,<span class="st">"30 to 34"</span>,<span class="st">"35 to 39"</span>,<span class="st">"40 to 44"</span>,<span class="st">"45 to 49"</span>,<span class="st">"50 to 54"</span>,<span class="st">"55 to 59"</span>,<span class="st">"60 to 64"</span>,<span class="st">"65 to 69"</span>,<span class="st">"70 to 74"</span>,<span class="st">"75 to 79"</span>,<span class="st">"80 or older"</span>)),</span>
+<span id="cb26-75"><a href="#cb26-75" aria-hidden="true" tabindex="-1"></a>         <span class="at">Education=</span></span>
+<span id="cb26-76"><a href="#cb26-76" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Education,</span>
+<span id="cb26-77"><a href="#cb26-77" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>),</span>
+<span id="cb26-78"><a href="#cb26-78" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Never attended school or only kindergarten"</span>,<span class="st">"Grades 1 through 8 (Elementary)"</span>,<span class="st">"Grades 9 through 11 (Some high school)"</span>,<span class="st">"Grade 12 or GED (High school graduate)"</span>,<span class="st">"College 1 year to 3 years (Some college or technical school)"</span>,<span class="st">"College 4 years or more (College graduate)"</span>)),</span>
+<span id="cb26-79"><a href="#cb26-79" aria-hidden="true" tabindex="-1"></a>         <span class="at">Income=</span></span>
+<span id="cb26-80"><a href="#cb26-80" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Income,</span>
+<span id="cb26-81"><a href="#cb26-81" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"7"</span>,<span class="st">"8"</span>),</span>
+<span id="cb26-82"><a href="#cb26-82" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Less than $10,000"</span>,<span class="st">"$10,000 to less than $15,000"</span>,<span class="st">"$15,000 to less than $20,000"</span>,<span class="st">"$20,000 to less than $25,000"</span>,<span class="st">"$25,000 to less than $35,000"</span>,<span class="st">"$35,000 to less than $50,000"</span>,<span class="st">"$50,000 to less than $75,000"</span>,<span class="st">"$75,000 or more"</span>))</span>
+<span id="cb26-83"><a href="#cb26-83" aria-hidden="true" tabindex="-1"></a>         )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, subset the data to look at the 5 predictors:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>dbhi_data <span class="ot">&lt;-</span> data <span class="co">#|&gt; </span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co">#  select(Diabetes_binary,Age,HeartDiseaseorAttack,Income,Sex,Smoker)</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>dbhi_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 253,680 × 22
+   Diabetes_binary         HighBP     HighChol     CholCheck   BMI Smoker Stroke
+   &lt;fct&gt;                   &lt;fct&gt;      &lt;fct&gt;        &lt;fct&gt;     &lt;dbl&gt; &lt;fct&gt;  &lt;fct&gt; 
+ 1 no diabetes             high BP    high choles… yes chol…    40 yes    no    
+ 2 no diabetes             no high BP no high cho… no chole…    25 yes    no    
+ 3 no diabetes             high BP    high choles… yes chol…    28 no     no    
+ 4 no diabetes             high BP    no high cho… yes chol…    27 no     no    
+ 5 no diabetes             high BP    high choles… yes chol…    24 no     no    
+ 6 no diabetes             high BP    high choles… yes chol…    25 yes    no    
+ 7 no diabetes             high BP    no high cho… yes chol…    30 yes    no    
+ 8 no diabetes             high BP    high choles… yes chol…    25 yes    no    
+ 9 prediabetes or diabetes high BP    high choles… yes chol…    30 yes    no    
+10 no diabetes             no high BP no high cho… yes chol…    24 no     no    
+# ℹ 253,670 more rows
+# ℹ 15 more variables: HeartDiseaseorAttack &lt;fct&gt;, PhysActivity &lt;fct&gt;,
+#   Fruits &lt;fct&gt;, Veggies &lt;fct&gt;, HvyAlcoholConsump &lt;fct&gt;, AnyHealthcare &lt;fct&gt;,
+#   NoDocbcCost &lt;fct&gt;, GenHlth &lt;fct&gt;, MentHlth &lt;dbl&gt;, PhysHlth &lt;dbl&gt;,
+#   DiffWalk &lt;fct&gt;, Sex &lt;fct&gt;, Age &lt;fct&gt;, Education &lt;fct&gt;, Income &lt;fct&gt;</code></pre>
+</div>
 </div>
 </section>
 <section id="split-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="split-the-data">Split the Data</h2>
-<p>Set the seed. Then, use functions from tidymodels to split the data into a training and test set (70/30 split). Then, use the strata argument to stratify the split on the <code>Seasons</code> variable.</p>
+<p>Set the seed. Then, use functions from tidymodels to split the data into a training and test set (70/30 split). Then, use the strata argument to stratify the split on the <code>Sex</code> variable.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>dbhi_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(dbhi_data, <span class="at">prop =</span> <span class="fl">0.70</span>) <span class="co">#strata = argument goes in the parentheses, if needed</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>dbhi_train <span class="ot">&lt;-</span> <span class="fu">training</span>(dbhi_split)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>dbhi_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(dbhi_split)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>dbhi_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(dbhi_data, <span class="at">prop =</span> <span class="fl">0.70</span>, <span class="at">strata=</span>Sex) <span class="co">#strata = argument goes in the parentheses, if needed</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>dbhi_train <span class="ot">&lt;-</span> <span class="fu">training</span>(dbhi_split)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>dbhi_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(dbhi_split)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We will perform 5-fold cross validation:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>dbhi_5_fold <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(dbhi_train, <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>dbhi_5_fold <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(dbhi_train, <span class="dv">5</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>dbhi_5_fold</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#  5-fold cross-validation 
+# A tibble: 5 × 2
+  splits                 id   
+  &lt;list&gt;                 &lt;chr&gt;
+1 &lt;split [142060/35515]&gt; Fold1
+2 &lt;split [142060/35515]&gt; Fold2
+3 &lt;split [142060/35515]&gt; Fold3
+4 &lt;split [142060/35515]&gt; Fold4
+5 &lt;split [142060/35515]&gt; Fold5</code></pre>
+</div>
 </div>
 </section>
 <section id="models" class="level2">
 <h2 class="anchored" data-anchor-id="models">Models</h2>
 <p>We will consider two kinds of models: classification tree and random forest. We will …</p>
-<p>Get a recipe. Use the <code>date</code> variable to create a weekday/weekend factor variable. Then, standardize the numeric variables since their scales are pretty different. Finally, create dummy variables for the seasons, holiday, and new day type variable.</p>
+<p>Get a recipe. Then, standardize the numeric variables since their scales are pretty different. Finally, create dummy variables for the predictors since they need to be numeric (again).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>dbhi_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(Diabetes_binary <span class="sc">~</span> ., <span class="at">data =</span> dbhi_train) <span class="sc">|&gt;</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary</span>()</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co">#  prep(training = dbhi_train) |&gt;</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  bake(dbhi_train)</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>dbhi_recipe</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 22 × 4
-   variable             type      role      source  
-   &lt;chr&gt;                &lt;list&gt;    &lt;chr&gt;     &lt;chr&gt;   
- 1 HighBP               &lt;chr [3]&gt; predictor original
- 2 HighChol             &lt;chr [3]&gt; predictor original
- 3 CholCheck            &lt;chr [3]&gt; predictor original
- 4 BMI                  &lt;chr [2]&gt; predictor original
- 5 Smoker               &lt;chr [3]&gt; predictor original
- 6 Stroke               &lt;chr [3]&gt; predictor original
- 7 HeartDiseaseorAttack &lt;chr [3]&gt; predictor original
- 8 PhysActivity         &lt;chr [3]&gt; predictor original
- 9 Fruits               &lt;chr [3]&gt; predictor original
-10 Veggies              &lt;chr [3]&gt; predictor original
-# ℹ 12 more rows</code></pre>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">#bystanders &lt;- colnames(dbhi_data)[c(2:4,7:18,21)]</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co">#bystanders</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co">#dbhi_train</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Diabetes_binary ~ Age + BMI + Income + Sex + Smoker</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">#ORIGINALS:  update_role(HighBP,HighChol,CholCheck,Stroke,HeartDiseaseorAttack,PhysActivity,Fruits,Veggies,HvyAlcoholConsump,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") </span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>dbhi_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(Diabetes_binary <span class="sc">~</span> ., <span class="at">data =</span> dbhi_train) <span class="sc">|&gt;</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">update_role</span>(Age,Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,<span class="at">new_role =</span> <span class="st">"bystander"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>(), <span class="sc">-</span><span class="fu">all_outcomes</span>()) <span class="co">#|&gt;</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="co">#  summary()</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a><span class="co">#  prep(training = dbhi_train) |&gt;</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co">#  bake(dbhi_train)</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>dbhi_recipe</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Recipe ──────────────────────────────────────────────────────────────────────</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Inputs </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Number of variables by role</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>outcome:    1
+predictor:  5
+bystander: 16</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Operations </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>• Dummy variables from: all_nominal_predictors()</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>• Centering and scaling for: all_numeric() and -all_outcomes()</code></pre>
 </div>
 </div>
 <section id="classification-tree" class="level3">
 <h3 class="anchored" data-anchor-id="classification-tree">Classification Tree</h3>
 <p>You should provide a thorough explanation of what a classification tree model is. Then you should fit a classification tree with varying values for the complexity parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.</p>
+<p>First, tell <code>tidymodels</code> that we are performing a classification task:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>tree_mod <span class="ot">&lt;-</span> <span class="fu">decision_tree</span>(<span class="at">tree_depth =</span> <span class="fu">tune</span>(),</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">min_n =</span> <span class="dv">10</span>,</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">cost_complexity =</span> <span class="fu">tune</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"rpart"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next, create a workflow to use in the fitting process:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>tree_wkf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(dbhi_recipe) <span class="sc">|&gt;</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(tree_mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then, to create the tuning grid for fitting our models, we use cross validation (CV) to select the tuning parameters:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span> </span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(<span class="at">resamples =</span> dbhi_5_fold, <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss))</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>temp <span class="sc">|&gt;</span> </span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 8
+   cost_complexity tree_depth .metric     .estimator  mean     n std_err .config
+             &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;  
+ 1        1.41e- 5          6 mn_log_loss binary     0.397     5 3.21e-3 Prepro…
+ 2        9.46e- 3          9 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 3        1.05e-10         11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 4        2.89e- 4          3 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 5        2.97e- 8         13 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 6        7.51e- 8          8 mn_log_loss binary     0.392     5 2.56e-3 Prepro…
+ 7        5.06e- 5         14 mn_log_loss binary     0.399     5 2.28e-3 Prepro…
+ 8        2.87e- 9          4 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 9        5.92e- 2          1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+10        1.02e- 6         11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>tree_grid <span class="ot">&lt;-</span> <span class="fu">grid_regular</span>(<span class="fu">cost_complexity</span>(),</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>                          <span class="co">#min_n(),</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">tree_depth</span>(),</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>                          <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">5</span>))</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>tree_grid</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 25 × 2
+   cost_complexity tree_depth
+             &lt;dbl&gt;      &lt;int&gt;
+ 1    0.0000000001          1
+ 2    0.0000000178          1
+ 3    0.00000316            1
+ 4    0.000562              1
+ 5    0.1                   1
+ 6    0.0000000001          4
+ 7    0.0000000178          4
+ 8    0.00000316            4
+ 9    0.000562              4
+10    0.1                   4
+# ℹ 15 more rows</code></pre>
+</div>
+</div>
+<p>This generates 25 (5x5) candidate decision tree models.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span> </span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(<span class="at">resamples =</span> dbhi_5_fold,</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss),</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">grid =</span> tree_grid)</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 25 × 8
+   cost_complexity tree_depth .metric     .estimator  mean     n std_err .config
+             &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;  
+ 1    0.0000000001          1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 2    0.0000000178          1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 3    0.00000316            1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 4    0.000562              1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 5    0.1                   1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 6    0.0000000001          4 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 7    0.0000000178          4 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 8    0.00000316            4 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+ 9    0.000562              4 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+10    0.1                   4 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+# ℹ 15 more rows</code></pre>
+</div>
+</div>
+<p>Combine the metrics across the folds, then plot:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tree_depth =</span> <span class="fu">factor</span>(tree_depth)) <span class="sc">|&gt;</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(cost_complexity, mean, <span class="at">color =</span> tree_depth)) <span class="sc">+</span></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> .metric, <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>()) <span class="sc">+</span></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_d</span>(<span class="at">option =</span> <span class="st">"plasma"</span>, <span class="at">begin =</span> .<span class="dv">9</span>, <span class="at">end =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Modeling_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>tree_fits</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Tuning results
+# 5-fold cross-validation 
+# A tibble: 5 × 4
+  splits                 id    .metrics          .notes          
+  &lt;list&gt;                 &lt;chr&gt; &lt;list&gt;            &lt;list&gt;          
+1 &lt;split [142060/35515]&gt; Fold1 &lt;tibble [25 × 6]&gt; &lt;tibble [0 × 3]&gt;
+2 &lt;split [142060/35515]&gt; Fold2 &lt;tibble [25 × 6]&gt; &lt;tibble [0 × 3]&gt;
+3 &lt;split [142060/35515]&gt; Fold3 &lt;tibble [25 × 6]&gt; &lt;tibble [0 × 3]&gt;
+4 &lt;split [142060/35515]&gt; Fold4 &lt;tibble [25 × 6]&gt; &lt;tibble [0 × 3]&gt;
+5 &lt;split [142060/35515]&gt; Fold5 &lt;tibble [25 × 6]&gt; &lt;tibble [0 × 3]&gt;</code></pre>
+</div>
+</div>
+<p>Our best model has a tree_depth of 15 (this minimizes the mean log loss).</p>
+<p>Sort by the log loss value:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(.metric <span class="sc">==</span> <span class="st">"mn_log_loss"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 25 × 8
+   cost_complexity tree_depth .metric     .estimator  mean     n std_err .config
+             &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;  
+ 1    0.0000000001         11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 2    0.0000000178         11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 3    0.00000316           11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 4    0.0000000001         15 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 5    0.0000000178         15 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 6    0.00000316           15 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 7    0.0000000001          8 mn_log_loss binary     0.392     5 2.56e-3 Prepro…
+ 8    0.0000000178          8 mn_log_loss binary     0.392     5 2.56e-3 Prepro…
+ 9    0.00000316            8 mn_log_loss binary     0.392     5 2.56e-3 Prepro…
+10    0.0000000001          1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
+# ℹ 15 more rows</code></pre>
+</div>
+</div>
+<p>Grab the best model’s tuning parameter values:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>tree_best_params <span class="ot">&lt;-</span> <span class="fu">select_best</span>(tree_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in select_best(tree_fits): No value of `metric` was given;
+"mn_log_loss" will be used.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>tree_best_params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  cost_complexity tree_depth .config              
+            &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;                
+1    0.0000000001         11 Preprocessor1_Model16</code></pre>
+</div>
+</div>
+<p>These are the values for <code>tree_depth</code> and <code>cost_complexity</code> that minimize mean log loss in the dbhi data set.</p>
+<p>Fit this chosen model by <code>finalize_workflow()</code> to finalize the model on the training set:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>tree_final_wkf <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(tree_best_params)</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>tree_final_wkf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>══ Workflow ════════════════════════════════════════════════════════════════════
+Preprocessor: Recipe
+Model: decision_tree()
+
+── Preprocessor ────────────────────────────────────────────────────────────────
+2 Recipe Steps
+
+• step_dummy()
+• step_normalize()
+
+── Model ───────────────────────────────────────────────────────────────────────
+Decision Tree Model Specification (classification)
+
+Main Arguments:
+  cost_complexity = 1e-10
+  tree_depth = 11
+  min_n = 10
+
+Computational engine: rpart </code></pre>
+</div>
+</div>
+<p>Perform <code>last_fit()</code> on the <code>dbhi_split</code> object:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>tree_final_fit <span class="ot">&lt;-</span> tree_final_wkf <span class="sc">|&gt;</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">last_fit</span>(dbhi_split, <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss))</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>tree_final_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Resampling results
+# Manual resampling 
+# A tibble: 1 × 6
+  splits                 id            .metrics .notes   .predictions .workflow 
+  &lt;list&gt;                 &lt;chr&gt;         &lt;list&gt;   &lt;list&gt;   &lt;list&gt;       &lt;list&gt;    
+1 &lt;split [177575/76105]&gt; train/test s… &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;     &lt;workflow&gt;</code></pre>
+</div>
+</div>
+<p>Look at the metric with <code>collect_metrics()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>tree_final_fit <span class="sc">|&gt;</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 4
+  .metric     .estimator .estimate .config             
+  &lt;chr&gt;       &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;               
+1 mn_log_loss binary         0.396 Preprocessor1_Model1</code></pre>
+</div>
+</div>
+<p>Plot to learn about the fit:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>tree_final_model <span class="ot">&lt;-</span> <span class="fu">extract_workflow</span>(tree_final_fit)</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>tree_final_model <span class="ot">&lt;-</span> tree_final_model <span class="sc">|&gt;</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extract_fit_engine</span>() <span class="sc">|&gt;</span></span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>  rpart.plot<span class="sc">::</span><span class="fu">rpart.plot</span>(<span class="at">roundint =</span> <span class="cn">FALSE</span>,<span class="at">extra=</span><span class="dv">101</span>,<span class="at">digits=</span><span class="sc">-</span><span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Modeling_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>tree_final_model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$obj
+n= 177575 
+
+node), split, n, loss, yval, (yprob)
+      * denotes terminal node
+
+  1) root 177575 24553 no diabetes (0.8617317 0.1382683)  
+    2) HeartDiseaseorAttack_yes&lt; 1.386034 160791 19073 no diabetes (0.8813802 0.1186198) *
+    3) HeartDiseaseorAttack_yes&gt;=1.386034 16784  5480 no diabetes (0.6734986 0.3265014)  
+      6) Stroke_yes&lt; 2.322867 13995  4337 no diabetes (0.6901036 0.3098964) *
+      7) Stroke_yes&gt;=2.322867 2789  1143 no diabetes (0.5901757 0.4098243)  
+       14) HvyAlcoholConsump_yes&gt;=1.923615 83    16 no diabetes (0.8072289 0.1927711)  
+         28) Income_X.50.000.to.less.than..75.000&gt;=0.8810366 5     0 no diabetes (1.0000000 0.0000000) *
+         29) Income_X.50.000.to.less.than..75.000&lt; 0.8810366 78    16 no diabetes (0.7948718 0.2051282)  
+           58) Income_X.75.000.or.more&gt;=0.2976892 16     2 no diabetes (0.8750000 0.1250000) *
+           59) Income_X.75.000.or.more&lt; 0.2976892 62    14 no diabetes (0.7741935 0.2258065)  
+            118) Income_X.25.000.to.less.than..35.000&gt;=1.316765 9     1 no diabetes (0.8888889 0.1111111) *
+            119) Income_X.25.000.to.less.than..35.000&lt; 1.316765 53    13 no diabetes (0.7547170 0.2452830)  
+              238) Sex_male&gt;=0.120171 29     6 no diabetes (0.7931034 0.2068966) *
+              239) Sex_male&lt; 0.120171 24     7 no diabetes (0.7083333 0.2916667)  
+                478) Income_X.35.000.to.less.than..50.000&lt; 1.010926 17     3 no diabetes (0.8235294 0.1764706) *
+                479) Income_X.35.000.to.less.than..50.000&gt;=1.010926 7     3 prediabetes or diabetes (0.4285714 0.5714286) *
+       15) HvyAlcoholConsump_yes&lt; 1.923615 2706  1127 no diabetes (0.5835181 0.4164819) *
+
+$snipped.nodes
+NULL
+
+$xlim
+[1] 0 1
+
+$ylim
+[1] 0 1
+
+$x
+ [1] 0.23100161 0.04472613 0.41727710 0.15963341 0.67492078 0.38585713
+ [7] 0.27454070 0.49717357 0.38944799 0.60489915 0.50435527 0.70544303
+[13] 0.61926256 0.79162349 0.73416985 0.84907714 0.96398442
+
+$y
+ [1] 0.95861553 0.02628681 0.85266909 0.02628681 0.74672264 0.64077620
+ [7] 0.02628681 0.53482975 0.02628681 0.42888330 0.02628681 0.32293686
+[13] 0.02628681 0.21699041 0.02628681 0.02628681 0.02628681
+
+$branch.x
+       [,1]       [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+x 0.2310016 0.04472613 0.4172771 0.1596334 0.6749208 0.3858571 0.2745407
+         NA 0.04472613 0.4172771 0.1596334 0.6749208 0.3858571 0.2745407
+         NA 0.23100161 0.2310016 0.4172771 0.4172771 0.6749208 0.3858571
+       [,8]      [,9]     [,10]     [,11]     [,12]     [,13]     [,14]
+x 0.4971736 0.3894480 0.6048992 0.5043553 0.7054430 0.6192626 0.7916235
+  0.4971736 0.3894480 0.6048992 0.5043553 0.7054430 0.6192626 0.7916235
+  0.3858571 0.4971736 0.4971736 0.6048992 0.6048992 0.7054430 0.7054430
+      [,15]     [,16]     [,17]
+x 0.7341698 0.8490771 0.9639844
+  0.7341698 0.8490771 0.9639844
+  0.7916235 0.7916235 0.6749208
+
+$branch.y
+       [,1]       [,2]      [,3]       [,4]      [,5]      [,6]       [,7]
+y 0.9997651 0.06743639 0.8938187 0.06743639 0.7878722 0.6819258 0.06743639
+         NA 0.91327376 0.9132738 0.80732732 0.8073273 0.7013809 0.59543442
+         NA 0.91327376 0.9132738 0.80732732 0.8073273 0.7013809 0.59543442
+       [,8]       [,9]     [,10]      [,11]     [,12]      [,13]     [,14]
+y 0.5759793 0.06743639 0.4700329 0.06743639 0.3640864 0.06743639 0.2581400
+  0.5954344 0.48948798 0.4894880 0.38354153 0.3835415 0.27759509 0.2775951
+  0.5954344 0.48948798 0.4894880 0.38354153 0.3835415 0.27759509 0.2775951
+       [,15]      [,16]      [,17]
+y 0.06743639 0.06743639 0.06743639
+  0.17164864 0.17164864 0.70138087
+  0.17164864 0.17164864 0.70138087
+
+$labs
+ [1] "no diabetes\n153022  24553\n100.0000%" 
+ [2] "no diabetes\n141718  19073\n90.5482%"  
+ [3] "no diabetes\n11304  5480\n9.4518%"     
+ [4] "no diabetes\n9658  4337\n7.8812%"      
+ [5] "no diabetes\n1646  1143\n1.5706%"      
+ [6] "no diabetes\n67  16\n0.0467%"          
+ [7] "no diabetes\n5  0\n0.0028%"            
+ [8] "no diabetes\n62  16\n0.0439%"          
+ [9] "no diabetes\n14  2\n0.0090%"           
+[10] "no diabetes\n48  14\n0.0349%"          
+[11] "no diabetes\n8  1\n0.0051%"            
+[12] "no diabetes\n40  13\n0.0298%"          
+[13] "no diabetes\n23  6\n0.0163%"           
+[14] "no diabetes\n17  7\n0.0135%"           
+[15] "no diabetes\n14  3\n0.0096%"           
+[16] "prediabetes or diabetes\n3  4\n0.0039%"
+[17] "no diabetes\n1579  1127\n1.5239%"      
+
+$cex
+[1] 0.4625
+
+$boxes
+$boxes$x1
+ [1]  0.183660439 -0.002615046  0.376951032  0.121767869  0.637055236
+ [6]  0.347991591  0.236675157  0.459308026  0.351582444  0.567033608
+[11]  0.466489731  0.667577484  0.581397019  0.753757950  0.696304306
+[16]  0.777906774  0.926118881
+
+$boxes$y1
+ [1]  0.930420747 -0.001907977  0.824474301 -0.001907977  0.718527855
+ [6]  0.612581409 -0.001907977  0.506634963 -0.001907977  0.400688517
+[11] -0.001907977  0.294742071 -0.001907977  0.188795625 -0.001907977
+[16] -0.001907977 -0.001907977
+
+$boxes$x2
+ [1] 0.2783428 0.0920673 0.4576032 0.1974990 0.7127863 0.4237227 0.3124062
+ [8] 0.5350391 0.4273135 0.6427647 0.5422208 0.7433086 0.6571281 0.8294890
+[15] 0.7720354 0.9202475 1.0018500
+
+$boxes$y2
+ [1] 0.99976511 0.06743639 0.89381867 0.06743639 0.78787222 0.68192578
+ [7] 0.06743639 0.57597933 0.06743639 0.47003288 0.06743639 0.36408644
+[13] 0.06743639 0.25813999 0.06743639 0.06743639 0.06743639
+
+
+$split.labs
+[1] ""
+
+$split.cex
+ [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+
+$split.box
+$split.box$x1
+ [1] 0.1161793        NA 0.3483794        NA 0.5581954 0.2329999        NA
+ [8] 0.3786743        NA 0.4555495        NA 0.6339093        NA 0.6459569
+[15]        NA        NA        NA
+
+$split.box$y1
+ [1] 0.9003190        NA 0.7943725        NA 0.6884261 0.5824796        NA
+ [8] 0.4765332        NA 0.3705867        NA 0.2646403        NA 0.1586938
+[15]        NA        NA        NA
+
+$split.box$x2
+ [1] 0.3458239        NA 0.4861748        NA 0.7916462 0.5387144        NA
+ [8] 0.6156728        NA 0.7542488        NA 0.7769768        NA 0.9372901
+[15]        NA        NA        NA
+
+$split.box$y2
+ [1] 0.9262286        NA 0.8202821        NA 0.7143357 0.6083892        NA
+ [8] 0.5024428        NA 0.3964963        NA 0.2905499        NA 0.1846034
+[15]        NA        NA        NA</code></pre>
+</div>
+</div>
 </section>
 <section id="random-forest" class="level3">
 <h3 class="anchored" data-anchor-id="random-forest">Random Forest</h3>
