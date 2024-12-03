@@ -253,12 +253,11 @@ tree_fits
 
 Our best model has a tree_depth of 15 (this minimizes the mean log loss).  
 
-Sort by the log loss value:
+Arrange by the mean log loss:
 
 ```{r}
 tree_fits |>
   collect_metrics() |>
-  filter(.metric == "mn_log_loss") |>
   arrange(mean)
 
 ```
@@ -292,6 +291,8 @@ tree_final_fit
 
 ```
 
+This has information about how the final fitted model - which was fit on the entire training data set - performs on the test set.
+
 Look at the metric with `collect_metrics()`:
 
 ```{r}
@@ -303,8 +304,10 @@ tree_final_fit |>
 Plot to learn about the fit:
 
 ```{r}
+#Extract the workflow to better understand the structure of the plot!
 tree_final_model <- extract_workflow(tree_final_fit)
 
+#Plot!
 tree_final_model <- tree_final_model |>
   extract_fit_engine() |>
   rpart.plot::rpart.plot(roundint = FALSE,extra=101,digits=-6)
@@ -324,9 +327,86 @@ You should provide a thorough explanation of what a random forest is and why we 
 
 ## Final Model Selection
 
-We will compare the best models from each of the approaches on the test set and declare an overall winner:
+We will compare the best models from each of the approaches on the test set and declare an overall winner...
+
+Get the random forest (rf) specification:
 
 ```{r}
+rf_spec <- rand_forest(mtry = tune()) |>
+ set_engine("ranger", importance="impurity") |>
+ set_mode("classification")
 
+```
+
+Create the workflow using the same recipe:
+
+```{r}
+rf_wkf <- workflow() |>
+ add_recipe(dbhi_recipe) |>
+ add_model(rf_spec)
+
+```
+
+Fit to the cross-validation folds:
+
+```{r}
+rf_fit <- rf_wkf |>
+ tune_grid(resamples = dbhi_5_fold,
+           grid = 7,
+           metrics = metric_set(mn_log_loss))
+
+```
+
+Arrange by the mean log loss: 
+
+```{r}
+rf_fit |>
+ collect_metrics() |>
+ arrange(mean)
+
+```
+
+Obtain the best tuning parameter, use it to refit on the entire training set, then extract the final model:
+
+```{r}
+rf_best_params <- select_best(rf_fit)
+rf_best_params
+
+rf_final_wkf <- rf_wkf |>
+  finalize_workflow(rf_best_params)
+
+rf_final_fit <- rf_final_wkf |>
+  last_fit(dbhi_split, metrics = metric_set(mn_log_loss))
+
+#Investigate the random forest model
+#Refit to the entire data set
+rf_full_fit <- rf_final_wkf |>
+  fit(dbhi_data)
+rf_full_fit
+
+#rf_final_model <- extract_fit_engine(rf_full_fit)
+rf_final_model <- extract_fit_engine(rf_final_fit)
+attributes(rf_final_model)
+
+```
+
+Collect the metrics:
+
+```{r}
+rf_final_fit |> collect_metrics()
+
+```
+
+Produce a variable importance plot to examine the final model:
+
+```{r}
+imp <- enframe(rf_final_model$variable.importance,
+        name = "variable",
+        value = "importance")
+ggplot(imp, aes(x = reorder(variable, -importance), y = importance)) +
+  geom_bar(stat = 'identity') + 
+  xlab('term') +
+  ylab('value') +
+  coord_flip()
 ```
 

@@ -359,3 +359,20 @@ ggplot(data) +
 geom_boxplot(aes(x = Sex, y = BMI, fill = Diabetes_binary)) + scale_fill_manual(values=c("#E69F00", "#56B4E9"))
 ```
 
+```{r}
+quantile(data$BMI, probs = c(0.01,0.9,0.95,0.99))
+
+nrow(data[data$BMI>50, ])
+
+nrow(data[data$BMI<18, ])
+
+min(data$BMI)
+max(data$BMI)
+
+data |>
+  filter(BMI<18) |>
+  select(BMI) |>
+  arrange(BMI)
+                 
+```
+
