@@ -13,13 +13,9 @@ Write an intro!  We will include (at least) 5 predictors in this model:  (ORIGIN
 We will load the libraries and read in the data here:
 ```{r}
 library(baguette)
-library(corrplot)
-library(ggplot2)
 library(glmnet)
 library(lubridate)
 library(ranger)
-#library(randomForest)
-library(stringr)
 library(tidymodels)
 library(tidyverse)
 library(vip)
@@ -163,7 +159,7 @@ Get a recipe.   Then, standardize the numeric variables since their scales are p
 #bystanders
 
 #dbhi_train
-#Diabetes_binary ~ Age + BMI + Income + Sex + Smoker
+#Diabetes_binary ~ Age + HeartAttackorDisease + Income + Sex + HvyAlcoholConsump
 #ORIGINALS:  update_role(HighBP,HighChol,CholCheck,Stroke,HeartDiseaseorAttack,PhysActivity,Fruits,Veggies,HvyAlcoholConsump,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") 
 dbhi_recipe <- recipe(Diabetes_binary ~ ., data = dbhi_train) |>
   update_role(Age,Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") |>
@@ -184,6 +180,10 @@ You should provide a thorough explanation of what a classification tree model is
 First, tell `tidymodels` that we are performing a classification task:
 
 ```{r}
+#For API.R, use
+#cost_complexity = 1e-10
+#tree_depth = 11
+#min_n = 10
 tree_mod <- decision_tree(tree_depth = tune(),
                           min_n = 10,
                           cost_complexity = tune()) |>
@@ -232,7 +232,6 @@ tree_fits |>
   collect_metrics()
 
 ```
-
 
 Combine the metrics across the folds, then plot:
 
@@ -316,22 +315,14 @@ tree_final_model
 
 ```
 
-
 ### Random Forest
 
 You should provide a thorough explanation of what a random forest is and why we might use it (be sure to relate this to a basic classification tree). You should then fit a random forest model with varying values for the `mtry` parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.
 
-```{r}
-
-```
-
-## Final Model Selection
-
-We will compare the best models from each of the approaches on the test set and declare an overall winner...
-
 Get the random forest (rf) specification:
 
 ```{r}
+#mtry=9 for the API.R file
 rf_spec <- rand_forest(mtry = tune()) |>
  set_engine("ranger", importance="impurity") |>
  set_mode("classification")
@@ -355,6 +346,8 @@ rf_fit <- rf_wkf |>
            grid = 7,
            metrics = metric_set(mn_log_loss))
 
+rf_fit
+
 ```
 
 Arrange by the mean log loss: 
@@ -366,34 +359,26 @@ rf_fit |>
 
 ```
 
-Obtain the best tuning parameter, use it to refit on the entire training set, then extract the final model:
+Obtain the best tuning parameter, use it to refit on the entire training set, examine `mn_log_loss`, then extract the final model:
 
 ```{r}
+#Obtain best tuning parameter
 rf_best_params <- select_best(rf_fit)
 rf_best_params
 
+#Refit on the entire training set
 rf_final_wkf <- rf_wkf |>
   finalize_workflow(rf_best_params)
 
 rf_final_fit <- rf_final_wkf |>
   last_fit(dbhi_split, metrics = metric_set(mn_log_loss))
 
-#Investigate the random forest model
-#Refit to the entire data set
-rf_full_fit <- rf_final_wkf |>
-  fit(dbhi_data)
-rf_full_fit
+#Examine mn_log_loss
+rf_final_fit |> collect_metrics()
 
-#rf_final_model <- extract_fit_engine(rf_full_fit)
+#Extract the final model
 rf_final_model <- extract_fit_engine(rf_final_fit)
 attributes(rf_final_model)
-
-```
-
-Collect the metrics:
-
-```{r}
-rf_final_fit |> collect_metrics()
 
 ```
 
@@ -408,5 +393,19 @@ ggplot(imp, aes(x = reorder(variable, -importance), y = importance)) +
   xlab('term') +
   ylab('value') +
   coord_flip()
+```
+
+## Final Model Selection
+
+Random forest is best on the test set, so we will fit it to the entire data set:
+
+```{r}
+#Investigate the random forest model
+#Refit to the entire data set
+best_model <- rf_final_wkf |>
+  fit(dbhi_data)
+
+best_model
+
 ```
 

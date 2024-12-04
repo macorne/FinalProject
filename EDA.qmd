@@ -159,8 +159,16 @@ data <- data |>
 We will examine one-, two-, and three-way contingency tables.  For the one-way contingency table related to the diabetes status of respondents:
 
 ```{r}
-#One-way contingency table
-table(data$Diabetes_binary)
+#One-way contingency table for response
+table(dbhi_data$Diabetes_binary)
+
+#One-way contingency tables for predictors
+table(dbhi_data$Sex)
+table(dbhi_data$Income)
+table(dbhi_data$Stroke)
+table(dbhi_data$HeartDiseaseorAttack)
+table(dbhi_data$HvyAlcoholConsump)
+
 
 ```
 For the two-way contingency tables:
@@ -375,4 +383,5 @@ data |>
   arrange(BMI)
                  
 ```
+
 
