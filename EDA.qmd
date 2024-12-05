@@ -8,11 +8,10 @@ editor: visual
 
 ## Introduction
 
-We will explore the Centers for Disease Control and Prevention (CDC) Behavioral Risk Factor Surveillance System (BRFSS) data set of diabetes binary health indicators from 2015.  Two questions that we would like to address in this exploratory data analysis:
+We will explore the Centers for Disease Control and Prevention (CDC) Behavioral Risk Factor Surveillance System (BRFSS) data set of diabetes binary health indicators from 2015. Two questions that we would like to address in this exploratory data analysis:
 
 1.  Which factors are most predictive of diabetes risk?
-1.  Can we use a subset of the risk factors to accurately predict whether an individual has diabetes?
-
+2.  Can we use a subset of the risk factors to accurately predict whether an individual has diabetes?
 
 ## Read In The Data
 
@@ -30,12 +29,11 @@ data
 
 ```
 
-We have 22 variables:  1 response (Diabetes_binary) and 21 possible predictors.  From the 21, we will choose 6:  Age, Sex, Income, Stroke, Heart Disease or Attack, and Heavy Alcohol Consumption.  We are focusing on these variables as predictors because they are related both to lifestyle and to health.
+We have 22 variables: 1 response (Diabetes_binary) and 21 possible predictors. From the 21, we will choose 5: Age, Sex, Stroke, Heart Disease or Attack, and Heavy Alcohol Consumption. We are focusing on these variables as predictors because they are related both to lifestyle and to health.
 
-Other variables, such as Age or Body Mass Index (BMI), are interesting but may be less helpful.  Diabetes comes in different forms - at least Type 1 and Type 2 but possibly more - and we expect there to be fewer instances of diabetes (especially Type 2) among the young.
+Other variables, such as Age or Body Mass Index (BMI), are interesting but may be less helpful. Diabetes comes in different forms - at least Type 1 and Type 2 but possibly more - and we expect there to be fewer instances of diabetes (especially Type 2) among the young.
 
-The BMI is dubious as a predictor because two people may share the same BMI but have very different body compositions; these differences can manifest as health problems for one person but not another.  Since we lack family history, height, or weight of the respondents in this dataset, we can't easily make an assessment.  Further, since many of the variables are categorical, we cannot find correlations between them and any of the numeric variables.
-
+The BMI is dubious as a predictor because two people may share the same BMI but have very different body compositions; these differences can manifest as health problems for one person but not another. Since we lack family history, height, or weight of the respondents in this dataset, we can't easily make an assessment. Further, since many of the variables are categorical, we cannot find correlations between them and any of the numeric variables.
 
 ## Determine The Rate of Missing Values
 
@@ -47,8 +45,8 @@ data |>
   colSums()
 
 ```
-The sums are 0 for each column, so there is no missing data.  Otherwise, would might need to exclude observations or come up with a reasonable scheme for handling the missing observations.
 
+The sums are 0 for each column, so there is no missing data. Otherwise, would might need to exclude observations or come up with a reasonable scheme for handling the missing observations.
 
 ## How The Data Is Stored
 
@@ -148,7 +146,6 @@ data <- data |>
 
 ```
 
-
 ## Basic Data Validation
 
 Summarize each column to see if there are any unusual values.
@@ -157,13 +154,13 @@ Summarize each column to see if there are any unusual values.
 summary(data)
 ```
 
-The categorical variables are summarized into (vertical) one-way contingency tables in descending order of number of respondents.  Note that for more than six categories, the summaries lump values into "(Other)."  We obtain measures of center and spread for the numerical variables.  Some of the BMI values are extremely low or high; we will examine these when we perform a numerical analysis.  
+The categorical variables are summarized into (vertical) one-way contingency tables in descending order of number of respondents. Note that for more than six categories, the summaries lump values into "(Other)." We obtain measures of center and spread for the numerical variables. Some of the BMI values are extremely low or high; we will examine these when we perform a numerical analysis.
 
 ## Investigate Distributions
 
 ### Contingency Tables for Predictors and Responses
 
-We will examine one-, two-, and three-way contingency tables for the predictors and response.  We will also include Age for some assessments, since it may provide insight about certain categories.  
+We will examine one-, two-, and three-way contingency tables for the predictors and response. We will also include Age for some assessments, since it may provide insight about certain categories.
 
 #### One-Way Contingency Tables
 
@@ -175,6 +172,7 @@ table(data$Diabetes_binary,dnn="Diabetes_binary")
 ```
 
 For the predictors:
+
 ```{r}
 table(data$Age,dnn="Age")
 
@@ -206,7 +204,7 @@ table(data$HvyAlcoholConsump,dnn="Heavy Alcohol Consumption")
 
 #### Two-Way Contingency Tables
 
-Next, we consider two-way contingency tables between the predictors and the response.  We will use the `ascii` package so that we can make the tables look less muddled and more precise regarding categories.
+Next, we consider two-way contingency tables between the predictors and the response. We will use the `ascii` package so that we can make the tables look less muddled and more precise regarding categories.
 
 `Diabetes_binary` vs. `Age`:
 
@@ -216,30 +214,35 @@ print(ascii(table(data$Age,data$Diabetes_binary,dnn=c("Age","Diabetes_binary")))
 ```
 
 `Diabetes_binary` vs. `Sex`:
+
 ```{r}
 print(ascii(table(data$Sex,data$Diabetes_binary,dnn=c("Sex","Diabetes_binary"))),type="rest")
 
 ```
 
 `Diabetes_binary` vs. `Income`:
+
 ```{r}
 print(ascii(table(data$Income,data$Diabetes_binary,dnn=c("Income","Diabetes_binary"))),type="rest")
 
 ```
 
 `Diabetes_binary` vs. `Stroke`:
+
 ```{r}
 print(ascii(table(data$Stroke,data$Diabetes_binary,dnn=c("Stroke","Diabetes_binary"))),type="rest")
 
 ```
 
 `Diabetes_binary` vs. `HeartDiseaseorAttack`:
+
 ```{r}
 print(ascii(table(data$HeartDiseaseorAttack,data$Diabetes_binary,dnn=c("Heart Disease or Attack","Diabetes_binary"))),type="rest")
 
 ```
 
 `Diabetes_binary` vs. `HvyAlcoholConsump`:
+
 ```{r}
 print(ascii(table(data$HvyAlcoholConsump,data$Diabetes_binary,dnn=c("Heavy Alcohol Consumption","Diabetes_binary"))),type="rest")
 
@@ -248,36 +251,40 @@ print(ascii(table(data$HvyAlcoholConsump,data$Diabetes_binary,dnn=c("Heavy Alcoh
 We will also examine a selection of two-way contingency tables among the different chosen predictors:
 
 `Sex` vs. `Age`:
+
 ```{r}
 print(ascii(table(data$Age,data$Sex,dnn=c("Age","Sex"))),type="rest")
 
 ```
 
-For respondents between 18 to 24, more males than females responded to the survey.  For the other age ranges, more females than males responded.  Also, above age 74, there are significantly more female than male respondents; it is well-known that the average lifespan of males is less than that of females.  So, it is likely that there are fewer males, compared with females, to respond to the survey.
+For respondents between 18 to 24, more males than females responded to the survey. For the other age ranges, more females than males responded. Also, above age 74, there are significantly more female than male respondents; it is well-known that the average lifespan of males is less than that of females. So, it is likely that there are fewer males, compared with females, to respond to the survey.
 
 `HeartDiseaseorAttack` vs. `Stroke`:
+
 ```{r}
 print(ascii(table(data$Stroke,data$HeartDiseaseorAttack,dnn=c("Stroke","Heart Disease or Attack"))),type="rest")
 
 ```
 
-We see that among the respondents, some have been assessed to have both a stroke and heart disease.  
+We see that among the respondents, some have been assessed to have both a stroke and heart disease.
 
 `HvyAlcoholConsump` vs. `Stroke`:
+
 ```{r}
 print(ascii(table(data$Stroke,data$HvyAlcoholConsump,dnn=c("Stroke","Heavy Alcohol Consumption"))),type="rest")
 
 ```
 
-We see that few of the respondents are both heavy drinkers and have been assessed to have a stroke.  Also, we note that the largest numer of respondents report neither drinking heavily nor having been assessed to have had a stroke.  
+We see that few of the respondents are both heavy drinkers and have been assessed to have a stroke. Also, we note that the largest numer of respondents report neither drinking heavily nor having been assessed to have had a stroke.
 
 `HvyAlcoholConsump` vs. `HeartAttackorDisease`:
+
 ```{r}
 print(ascii(table(data$HeartDiseaseorAttack,data$HvyAlcoholConsump,dnn=c("Heart Disease or Attack","Heavy Alcohol Consumption"))),type="rest")
 
 ```
 
-We see that few of the respondents are both heavy drinkers and have heart disease or have had a heart attack.  Also, we note that the largest numer of respondents report neither drinking heavily nor having been assessed to have heart disease or a heart attack.  This is similar to heavy drinking vs. stroke.
+We see that few of the respondents are both heavy drinkers and have heart disease or have had a heart attack. Also, we note that the largest numer of respondents report neither drinking heavily nor having been assessed to have heart disease or a heart attack. This is similar to heavy drinking vs. stroke.
 
 #### Three-Way Contingency Table
 
@@ -289,7 +296,7 @@ print(ascii(table(data$Age,data$Sex,data$Diabetes_binary)),type="rest")
 
 ```
 
-This format flattens the three-way table, which is good in a way since we can see everything in one table rather than in two separated tables.  We will provide an interpretation below when we examine the first bar chart below!
+This format flattens the three-way table, which is good in a way since we can see everything in one table rather than in two separated tables. We will provide an interpretation below when we examine the first bar chart below!
 
 #### Numeric Summaries
 
@@ -309,11 +316,11 @@ summary(data |>
 
 ```
 
-The top table corresponds to overall correlation of the numeric variables.  The second one from the top filters for no diabetes.  The final one (bottom) is for prediabetes or diabetes.
+The top table corresponds to overall correlation of the numeric variables. The second one from the top filters for no diabetes. The final one (bottom) is for prediabetes or diabetes.
 
-The BMI among prediabetic and diabetic respondents is higher than among nondiabetics, though the IQR is similar.  There seem to be outliers - the minimum and maximum BMI values seem too low and too high for a human being!  However, it looks like CDC reports these using the typical BMI measure (these wouldn't be percentiles since 12 being the lowest percentile would suggest a problem with the survey sample).
+The BMI among prediabetic and diabetic respondents is higher than among nondiabetics, though the IQR is similar. There seem to be outliers - the minimum and maximum BMI values seem too low and too high for a human being! However, it looks like CDC reports these using the typical BMI measure (these wouldn't be percentiles since 12 being the lowest percentile would suggest a problem with the survey sample).
 
-Prediabetics and diabetics report more days with poor mental health than nondiabetics.  The IQR is also larger, and the mean is notably larger.  This pattern is more pronounced for physical health, where the mean number of days of reported bad health among prediabetics and diabetics is over twice that of nondiabetics.  The IQR is also quite large for poor physical health days for prediabetics and diabetics when compared with nondiabetics.  However, the 1st quartile for mental and physical health for all respondents is 0 days, and the medians are low (mostly 0), so that suggests many respondents did not report bad mental or physical health.
+Prediabetics and diabetics report more days with poor mental health than nondiabetics. The IQR is also larger, and the mean is notably larger. This pattern is more pronounced for physical health, where the mean number of days of reported bad health among prediabetics and diabetics is over twice that of nondiabetics. The IQR is also quite large for poor physical health days for prediabetics and diabetics when compared with nondiabetics. However, the 1st quartile for mental and physical health for all respondents is 0 days, and the medians are low (mostly 0), so that suggests many respondents did not report bad mental or physical health.
 
 We will examine correlations among our numeric variables:
 
@@ -337,10 +344,9 @@ data |>
 
 ```
 
-The top table corresponds to overall correlation of the numeric variables.  The second one from the top filters for no diabetes.  The final one (bottom) is for prediabetes or diabetes.
+The top table corresponds to overall correlation of the numeric variables. The second one from the top filters for no diabetes. The final one (bottom) is for prediabetes or diabetes.
 
-The correlations between the different numeric variables are not strong.  The strongest correlation is between mental and physical health, which is not surprising.  For non-diabetics, the correlation between mental and physical health is weaker than for prediabetics and diabetics.  The BMI is very weakly correlated with mental and physical health, regardless of diabetes status.
-
+The correlations between the different numeric variables are not strong. The strongest correlation is between mental and physical health, which is not surprising. For non-diabetics, the correlation between mental and physical health is weaker than for prediabetics and diabetics. The BMI is very weakly correlated with mental and physical health, regardless of diabetes status.
 
 ### Bar Charts
 
@@ -356,7 +362,7 @@ ggplot(data,
 
 ```
 
-We see a peak of respondents for nondiabetic males and females in the 60 to 64 age bracket, while there is a peak of prediabetic or diabetic respondents in the 65 to 69 age bracket.  The three-way contingency table above has the precise counts provided in this visual.
+We see a peak of respondents for nondiabetic males and females in the 60 to 64 age bracket, while there is a peak of prediabetic or diabetic respondents in the 65 to 69 age bracket. The three-way contingency table above has the precise counts provided in this visual.
 
 We will also look for relationships between diabetes status, sex, and age:
 
@@ -412,8 +418,7 @@ ggplot(data |> filter(Age == "80 or older"),
 
 ```
 
-The results are, perhaps, not surprising.  In the youngest age bracket, there are almost no incidences of stroke, regardless of diabetic status.  There are also few instances of diabetes.  With increasing age, more respondents report having strokes, regardless of diabetes status.  However, the proportion of strokes is higher among prediabetics and diabetics than among nondiabetics.
-
+The results are, perhaps, not surprising. In the youngest age bracket, there are almost no incidences of stroke, regardless of diabetic status. There are also few instances of diabetes. With increasing age, more respondents report having strokes, regardless of diabetes status. However, the proportion of strokes is higher among prediabetics and diabetics than among nondiabetics.
 
 ### Scatterplots & Histograms For Numeric Variables
 
@@ -492,7 +497,7 @@ Next, we will examine the relationship of each of these to BMI, then stratify ac
   
 ```
 
-The association between physical health and BMI grows stronger with age.  We can see this by 
+The association between physical health and BMI grows stronger with age. We can see this by
 
 Then, we will examine the distributions of PhysHlth, MentHlth, and BMI based on whether individuals have diabetes.
 
@@ -533,10 +538,9 @@ ggplot(data,
 
 ```
 
-Most of the respondents indicated no poor mental health or poor physical health days.  However, the ratio of prediabetics or diabetics to nondiabetics who reported number of days of physical illness or injury was greater at 30 days than at 0 days; the same is true for poor mental health days.  However, this only shows an association and does not prove that the respondents' illnesses were due to diabetes or something else.
+Most of the respondents indicated no poor mental health or poor physical health days. However, the ratio of prediabetics or diabetics to nondiabetics who reported number of days of physical illness or injury was greater at 30 days than at 0 days; the same is true for poor mental health days. However, this only shows an association and does not prove that the respondents' illnesses were due to diabetes or something else.
 
-The density of respondents by BMI, by diabetes status, shows a higher BMI for prediabetics and diabetics than for nondiabetics.  (This is elucidated more clearly in the box plots below.). The peak density of respondents is the same at just over 25 BMI.  However, the nondiabetic respondents' BMI values fall off much more quickly than the prediabetic and diabetic respondents' BMI values.
-
+The density of respondents by BMI, by diabetes status, shows a higher BMI for prediabetics and diabetics than for nondiabetics. (This is elucidated more clearly in the box plots below.). The peak density of respondents is the same at just over 25 BMI. However, the nondiabetic respondents' BMI values fall off much more quickly than the prediabetic and diabetic respondents' BMI values.
 
 ### Box Plots
 
@@ -594,13 +598,12 @@ geom_boxplot(, outlier.alpha=0.1) +
 
 ```
 
-Among the 18 to 29 age bracket, the distributions of BMI look right-skewed regardless of sex or diabetes status.  30 to 34 year old nondiabetic females continue to show a right-skewed distribution of BMI.  The mean BMI (red dot) is notably higher than the median BMI in diabetic males and females between 18 and 29 years compared with other age brackets.
+Among the 18 to 29 age bracket, the distributions of BMI look right-skewed regardless of sex or diabetes status. 30 to 34 year old nondiabetic females continue to show a right-skewed distribution of BMI. The mean BMI (red dot) is notably higher than the median BMI in diabetic males and females between 18 and 29 years compared with other age brackets.
 
 Interestingly, 45 to 49 year old prediabetic and diabetic females show a slight right-skewed BMI again, as do 55 to 59 year old prediabetic and diabetic males.
 
 60 to 69 year old nondiabetic males show a right-skewed BMI distribution, as do 70 to 74 year old males and 80 or older females with no diabetes.
 
-It is unclear without doing more analysis to determine why the BMI are skewed (lifestyle or other factors).  Also, it is possibly beyond the scope of investigating diabetes status.
+It is unclear without doing more analysis to determine why the BMI are skewed (lifestyle or other factors). Also, it is possibly beyond the scope of investigating diabetes status.
 
-In most of the age brackets, prediabetics and diabetics have a wider IQR for their BMI than nondiabetics.  The 1st, 2nd, and 3rd quartiles of prediabetics and diabetics tend to be higher than those of nondiabetics.  Females with prediabetes or diabetes have medians that are near or above the 3rd quartile of nondiabetic women.  This trend persists across age brackets.
-
+In most of the age brackets, prediabetics and diabetics have a wider IQR for their BMI than nondiabetics. The 1st, 2nd, and 3rd quartiles of prediabetics and diabetics tend to be higher than those of nondiabetics. Females with prediabetes or diabetes have medians that are near or above the 3rd quartile of nondiabetic women. This trend persists across age brackets.
