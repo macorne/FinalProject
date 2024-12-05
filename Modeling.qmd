@@ -409,3 +409,28 @@ best_model
 
 ```
 
+## Confusion Matrix
+
+Compare the predictions from the model to the actual values from the data set (again you fit the model on the entire data set for this part):
+
+```{r}
+cm <- dbhi_data |> 
+  mutate(
+    estimate = best_model |> 
+      predict(dbhi_data) |> 
+      pull()) |>
+  conf_mat(Diabetes_binary,estimate)
+
+#autoplot(cm, type = "heatmap") + 
+#  aes(fill = rep(colnames(cm$table), 
+#                 each = ncol(cm$table)))
+
+fourfoldplot(cm$table, color = c("#CC6666", "#99CC99"),
+             conf.level = 0, margin = 1, main = "Confusion Matrix")
+
+#str(cm)
+
+#cm$table
+
+```
+

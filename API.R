@@ -147,7 +147,11 @@ function(){
 #* @param HeartDiseaseorAttack heart disease or attack
 #* @param HvyAlcoholConsumpt heavy alcohol consumption
 #* @get /pred
-function(Sex = 0, Income = 8, Stroke = 0, HeartDiseaseorAttack = 0, HvyAlcoholConsumpt = 0){
+function(Sex = "female", 
+         Income = "$35,000 to less than $50,000", 
+         Stroke = "no", 
+         HeartDiseaseorAttack = "no", 
+         HvyAlcoholConsumpt = "no"){
   
 }
 
@@ -161,7 +165,7 @@ function(Sex = 0, Income = 8, Stroke = 0, HeartDiseaseorAttack = 0, HvyAlcoholCo
 #* @param type base or ggally
 #* @param color TRUE or FALSE (only for ggally)
 #* @get /confusion
-function(type = "base", color = FALSE){
+function(type = "heatmap", color = FALSE){
   if(tolower(type) == "ggally"){
     if(color){
       a <- GGally::ggpairs(iris, aes(color = Species))
