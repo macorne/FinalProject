@@ -1,0 +1,475 @@
+---
+title: "Modeling"
+author: "Matthew Corne"
+date: "12-05-2024"
+format: html
+editor: visual
+---
+
+
+## Introduction
+
+Write an intro!  We will include (at least) 5 predictors in this model: sex, income, stroke, heart disease or attack, and heavy alcohol consumption.
+
+We will load the libraries and read in the data here:
+
+```{r}
+library(baguette)
+library(glmnet)
+library(lubridate)
+library(ranger)
+library(tidymodels)
+library(tidyverse)
+library(vip)
+library(vroom)
+
+#diabetes_binary_health_indicators_BRFSS2015.csv
+#dbhi = diabetes binary health indicators
+data <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+data
+
+```
+
+
+Next, we will convert variables to factor variables, where appropriate:
+
+
+```{r}
+dbhi_data <- data |>
+  mutate(Diabetes_binary=
+           factor(Diabetes_binary,
+                  levels=c("0","1"),
+                  labels=c("no diabetes","prediabetes or diabetes")),
+         HighBP=
+           factor(HighBP,
+                  levels=c("0","1"),
+                  labels=c("no high BP","high BP")),
+         HighChol=
+           factor(HighChol,
+                  levels=c("0","1"),
+                  labels=c("no high cholesterol","high cholesterol")),
+         CholCheck=
+           factor(CholCheck,
+                  levels=c("0","1"),
+                  labels=c("no cholesterol check in 5 years","yes cholesterol check in 5 years")),
+         #BMI=factor(BMI),
+         Smoker=
+           factor(Smoker,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Stroke=
+           factor(Stroke,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         HeartDiseaseorAttack=
+           factor(HeartDiseaseorAttack,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         PhysActivity=
+           factor(PhysActivity,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Fruits=
+           factor(Fruits,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         Veggies=
+           factor(Veggies,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         HvyAlcoholConsump=
+           factor(HvyAlcoholConsump,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         AnyHealthcare=
+           factor(AnyHealthcare,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         NoDocbcCost=
+           factor(NoDocbcCost,
+                  levels=c("0","1"),
+                  labels=c("no","yes")),
+         GenHlth=
+           factor(GenHlth,
+                  levels=c("1","2","3","4","5"),
+                  labels=c("excellent","very good","good","fair","poor")),
+         #MentHlth=
+           #factor(MentHlth),
+         #PhysHlth=
+           #factor(PhysHlth),
+         DiffWalk=
+           factor(DiffWalk,
+                  levels=c("0","1"),
+                  labels=c("no difficulty walking","yes difficulty walking")),
+         Sex=
+           factor(Sex,
+                  levels=c("0","1"),
+                  labels=c("female","male")),
+         Age=
+           factor(Age,
+                  levels=c("1","2","3","4","5","6","7","8","9","10","11","12","13"),
+                  labels=c("18 to 24","25 to 29","30 to 34","35 to 39","40 to 44","45 to 49","50 to 54","55 to 59","60 to 64","65 to 69","70 to 74","75 to 79","80 or older")),
+         Education=
+           factor(Education,
+                  levels=c("1","2","3","4","5","6"),
+                  labels=c("Never attended school or only kindergarten","Grades 1 through 8 (Elementary)","Grades 9 through 11 (Some high school)","Grade 12 or GED (High school graduate)","College 1 year to 3 years (Some college or technical school)","College 4 years or more (College graduate)")),
+         Income=
+           factor(Income,
+                  levels=c("1","2","3","4","5","6","7","8"),
+                  labels=c("Less than $10,000","$10,000 to less than $15,000","$15,000 to less than $20,000","$20,000 to less than $25,000","$25,000 to less than $35,000","$35,000 to less than $50,000","$50,000 to less than $75,000","$75,000 or more"))
+         )
+
+```
+
+
+
+## Split the Data
+
+Set the seed.  Then, use functions from tidymodels to split the data into a training and test set (70/30 split). Then, use the strata argument to stratify the split on the `Sex` variable.
+
+
+```{r}
+set.seed(11)
+dbhi_split <- initial_split(dbhi_data, prop = 0.70, strata=Sex) #strata = argument goes in the parentheses, if needed
+dbhi_train <- training(dbhi_split)
+dbhi_test <- testing(dbhi_split)
+
+```
+
+
+We will perform 5-fold cross validation:
+
+
+```{r}
+dbhi_5_fold <- vfold_cv(dbhi_train, 5)
+
+dbhi_5_fold
+
+```
+
+
+## Models
+
+We will consider two kinds of models:  classification tree and random forest.  We will ...
+
+Get a recipe.   Then, standardize the numeric variables since their scales are pretty different. Finally, create dummy variables for the predictors since they need to be numeric (again).
+
+
+```{r}
+#bystanders <- colnames(dbhi_data)[c(2:4,7:18,21)]
+#bystanders
+
+#dbhi_train
+#Diabetes_binary ~ Age + Sex + Income + Stroke + HeartAttackorDisease + HvyAlcoholConsump
+
+dbhi_recipe <- recipe(Diabetes_binary ~ ., data = dbhi_train) |>
+  update_role(Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") |>
+  step_dummy(all_nominal_predictors()) |>
+  step_normalize(all_numeric(), -all_outcomes()) #|>
+#  summary()
+#  prep(training = dbhi_train) |>
+#  bake(dbhi_train)
+
+dbhi_recipe
+
+```
+
+
+### Classification Tree
+
+You should provide a thorough explanation of what a classification tree model is. Then you should fit a classification tree with varying values for the complexity parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.
+
+First, tell `tidymodels` that we are performing a classification task:
+
+
+```{r}
+#For API.R, use
+#cost_complexity = 1e-10
+#tree_depth = 11
+#min_n = 10
+tree_mod <- decision_tree(tree_depth = tune(),
+                          min_n = 10,
+                          cost_complexity = tune()) |>
+  set_engine("rpart") |>
+  set_mode("classification")
+
+```
+
+
+Next, create a workflow to use in the fitting process:
+
+
+```{r}
+tree_wkf <- workflow() |>
+  add_recipe(dbhi_recipe) |>
+  add_model(tree_mod)
+
+```
+
+
+Then, to create the tuning grid for fitting our models, we use cross validation (CV) to select the tuning parameters:
+
+
+```{r}
+temp <- tree_wkf |> 
+  tune_grid(resamples = dbhi_5_fold, metrics=metric_set(mn_log_loss))
+temp |> 
+  collect_metrics()
+
+```
+
+```{r}
+tree_grid <- grid_regular(cost_complexity(),
+                          #min_n(),
+                          tree_depth(),
+                          levels = c(5, 5))
+
+tree_grid
+
+```
+
+
+This generates 25 (5x5) candidate decision tree models.
+
+
+```{r}
+tree_fits <- tree_wkf |> 
+  tune_grid(resamples = dbhi_5_fold,
+            metrics=metric_set(mn_log_loss),
+            grid = tree_grid)
+tree_fits |>
+  collect_metrics()
+
+```
+
+
+Combine the metrics across the folds, then plot:
+
+
+```{r}
+tree_fits |>
+  collect_metrics() |>
+  mutate(tree_depth = factor(tree_depth)) |>
+  ggplot(aes(cost_complexity, mean, color = tree_depth)) +
+  geom_line(size = 1.5, alpha = 0.6) +
+  geom_point(size = 2) +
+  facet_wrap(~ .metric, scales = "free", nrow = 2) +
+  scale_x_log10(labels = scales::label_number()) +
+  scale_color_viridis_d(option = "plasma", begin = .9, end = 0)
+
+tree_fits
+
+```
+
+
+Our best model has a tree_depth of 15 (this minimizes the mean log loss).  
+
+Arrange by the mean log loss:
+
+
+```{r}
+tree_fits |>
+  collect_metrics() |>
+  arrange(mean)
+
+```
+
+
+Grab the best model's tuning parameter values:
+
+
+```{r}
+tree_best_params <- select_best(tree_fits)
+tree_best_params
+
+```
+
+
+These are the values for `tree_depth` and `cost_complexity` that minimize mean log loss in the dbhi data set.
+
+Fit this chosen model by `finalize_workflow()` to finalize the model on the training set:
+
+
+```{r}
+tree_final_wkf <- tree_wkf |>
+  finalize_workflow(tree_best_params)
+
+tree_final_wkf
+
+```
+
+
+Perform `last_fit()` on the `dbhi_split` object:
+
+
+```{r}
+tree_final_fit <- tree_final_wkf |>
+  last_fit(dbhi_split, metrics=metric_set(mn_log_loss))
+tree_final_fit
+
+```
+
+
+This has information about how the final fitted model - which was fit on the entire training data set - performs on the test set.
+
+Look at the metric with `collect_metrics()`:
+
+
+```{r}
+tree_final_fit |>
+  collect_metrics()
+
+```
+
+
+Plot to learn about the fit:
+
+
+```{r}
+#Extract the workflow to better understand the structure of the plot!
+tree_final_model <- extract_workflow(tree_final_fit)
+
+#Plot!
+tree_final_model <- tree_final_model |>
+  extract_fit_engine() |>
+  rpart.plot::rpart.plot(roundint = FALSE,extra=101,digits=-6)
+
+tree_final_model
+
+```
+
+
+### Random Forest
+
+You should provide a thorough explanation of what a random forest is and why we might use it (be sure to relate this to a basic classification tree). You should then fit a random forest model with varying values for the `mtry` parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.
+
+Get the random forest (rf) specification:
+
+
+```{r}
+#mtry=9 for the API.R file
+rf_spec <- rand_forest(mtry = tune()) |>
+ set_engine("ranger", importance="impurity") |>
+ set_mode("classification")
+
+```
+
+
+Create the workflow using the same recipe:
+
+
+```{r}
+rf_wkf <- workflow() |>
+ add_recipe(dbhi_recipe) |>
+ add_model(rf_spec)
+
+```
+
+
+Fit to the cross-validation folds:
+
+
+```{r}
+rf_fit <- rf_wkf |>
+ tune_grid(resamples = dbhi_5_fold,
+           grid = 7,
+           metrics = metric_set(mn_log_loss))
+
+rf_fit
+
+```
+
+
+Arrange by the mean log loss: 
+
+
+```{r}
+rf_fit |>
+ collect_metrics() |>
+ arrange(mean)
+
+```
+
+
+Obtain the best tuning parameter, use it to refit on the entire training set, examine `mn_log_loss`, then extract the final model:
+
+
+```{r}
+#Obtain best tuning parameter
+rf_best_params <- select_best(rf_fit)
+rf_best_params
+
+#Refit on the entire training set
+rf_final_wkf <- rf_wkf |>
+  finalize_workflow(rf_best_params)
+
+rf_final_fit <- rf_final_wkf |>
+  last_fit(dbhi_split, metrics = metric_set(mn_log_loss))
+
+#Examine mn_log_loss
+rf_final_fit |> collect_metrics()
+
+#Extract the final model
+rf_final_model <- extract_fit_engine(rf_final_fit)
+attributes(rf_final_model)
+
+```
+
+
+Produce a variable importance plot to examine the final model:
+
+
+```{r}
+imp <- enframe(rf_final_model$variable.importance,
+        name = "variable",
+        value = "importance")
+ggplot(imp, aes(x = reorder(variable, -importance), y = importance)) +
+  geom_bar(stat = 'identity') + 
+  xlab('term') +
+  ylab('value') +
+  coord_flip()
+```
+
+
+## Final Model Selection
+
+Random forest is best on the test set, so we will fit it to the entire data set:
+
+
+```{r}
+#Investigate the random forest model
+#Refit to the entire data set
+best_model <- rf_final_wkf |>
+  fit(dbhi_data)
+
+best_model
+
+```
+
+
+## Confusion Matrix
+
+Compare the predictions from the model to the actual values from the data set (again you fit the model on the entire data set for this part):
+
+
+```{r}
+cm <- dbhi_data |> 
+  mutate(
+    estimate = best_model |> 
+      predict(dbhi_data) |> 
+      pull()) |>
+  conf_mat(Diabetes_binary,estimate)
+
+#autoplot(cm, type = "heatmap") + 
+#  aes(fill = rep(colnames(cm$table), 
+#                 each = ncol(cm$table)))
+
+fourfoldplot(cm$table, color = c("#CC6666", "#99CC99"),
+             conf.level = 0, margin = 1, main = "Confusion Matrix")
+
+#str(cm)
+
+#cm$table
+
+```
+

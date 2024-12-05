@@ -279,9 +279,9 @@ print(ascii(table(data$HeartDiseaseorAttack,data$HvyAlcoholConsump,dnn=c("Heart 
 
 We see that few of the respondents are both heavy drinkers and have heart disease or have had a heart attack.  Also, we note that the largest numer of respondents report neither drinking heavily nor having been assessed to have heart disease or a heart attack.  This is similar to heavy drinking vs. stroke.
 
-#### Three-Way Contingency Tables
+#### Three-Way Contingency Table
 
-For three-way contingency tables:
+For a three-way contingency table relating diabetes status to age and sex:
 
 ```{r}
 #Three-way contingency tables
@@ -289,12 +289,11 @@ print(ascii(table(data$Age,data$Sex,data$Diabetes_binary)),type="rest")
 
 ```
 
-
-
+This format flattens the three-way table, which is good in a way since we can see everything in one table rather than in two separated tables.  We will provide an interpretation below when we examine the first bar chart below!
 
 #### Numeric Summaries
 
-We will summarize our numeric variables over the entire set of respondents, then filter for diabetes status:
+Although we do not include any numeric variables as predictors, we will summarize our numeric variables over the entire set of respondents, then filter for diabetes status:
 
 ```{r}
 summary(data |>
@@ -309,6 +308,12 @@ summary(data |>
           select(where(is.numeric)))
 
 ```
+
+The top table corresponds to overall correlation of the numeric variables.  The second one from the top filters for no diabetes.  The final one (bottom) is for prediabetes or diabetes.
+
+The BMI among prediabetic and diabetic respondents is higher than among nondiabetics, though the IQR is similar.  There seem to be outliers - the minimum and maximum BMI values seem too low and too high for a human being!  However, it looks like CDC reports these using the typical BMI measure (these wouldn't be percentiles since 12 being the lowest percentile would suggest a problem with the survey sample).
+
+Prediabetics and diabetics report more days with poor mental health than nondiabetics.  The IQR is also larger, and the mean is notably larger.  This pattern is more pronounced for physical health, where the mean number of days of reported bad health among prediabetics and diabetics is over twice that of nondiabetics.  The IQR is also quite large for poor physical health days for prediabetics and diabetics when compared with nondiabetics.  However, the 1st quartile for mental and physical health for all respondents is 0 days, and the medians are low (mostly 0), so that suggests many respondents did not report bad mental or physical health.
 
 We will examine correlations among our numeric variables:
 
@@ -332,11 +337,14 @@ data |>
 
 ```
 
+The top table corresponds to overall correlation of the numeric variables.  The second one from the top filters for no diabetes.  The final one (bottom) is for prediabetes or diabetes.
+
 The correlations between the different numeric variables are not strong.  The strongest correlation is between mental and physical health, which is not surprising.  For non-diabetics, the correlation between mental and physical health is weaker than for prediabetics and diabetics.  The BMI is very weakly correlated with mental and physical health, regardless of diabetes status.
+
 
 ### Bar Charts
 
-We will look at bar charts and heatmaps relating diabetes status and walking difficulty across different age brackets:
+We will look at bar charts to visualize counts of diabetes status by age and sex:
 
 ```{r}
 ggplot(data, 
@@ -344,26 +352,72 @@ ggplot(data,
          x = Diabetes_binary, fill = Age)) +
   geom_bar(position = "dodge") +
   scale_fill_discrete("Age") +
-  facet_wrap(~ Sex)
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts vs. Diabetes Status, by Sex and Age",30)) + theme(plot.title = element_text(hjust = 0.5))
 
 ```
 
-We will also look for relationships between diabetes status, sex, and alcohol consumption across age brackets:
+We see a peak of respondents for nondiabetic males and females in the 60 to 64 age bracket, while there is a peak of prediabetic or diabetic respondents in the 65 to 69 age bracket.  The three-way contingency table above has the precise counts provided in this visual.
+
+We will also look for relationships between diabetes status, sex, and age:
 
 ```{r}
-ggplot(data, 
+ggplot(data |> filter(Age %in% c("18 to 24","25 to 29")), 
        aes(
          x = Diabetes_binary, fill = Stroke)) +
   geom_bar(position = "dodge") +
   scale_fill_discrete("Stroke") +
-  facet_wrap(~ HeartDiseaseorAttack)
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of Stroke Incidence vs. Diabetes Status, by Sex and Age 18 to 29",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("30 to 34","35 to 39")), 
+       aes(
+         x = Diabetes_binary, fill = Stroke)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("Stroke") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of Stroke Incidence vs. Diabetes Status, by Sex and Age 30 to 39",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("40 to 44","45 to 49")), 
+       aes(
+         x = Diabetes_binary, fill = Stroke)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("Stroke") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of Stroke Incidence vs. Diabetes Status, by Sex and Age 40 to 49",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("50 to 54","55 to 59")), 
+       aes(
+         x = Diabetes_binary, fill = Stroke)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("Stroke") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of Stroke Incidence vs. Diabetes Status, by Sex and Age 50 to 59",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("60 to 64","65 to 69")), 
+       aes(
+         x = Diabetes_binary, fill = Stroke)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("Stroke") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of Stroke Incidence vs. Diabetes Status, by Sex and Age 60 to 69",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("70 to 74","75 to 79")), 
+       aes(
+         x = Diabetes_binary, fill = Stroke)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("Stroke") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of Stroke Incidence vs. Diabetes Status, by Sex and Age 70 to 79",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age == "80 or older"), 
+       aes(
+         x = Diabetes_binary, fill = Stroke)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("Stroke") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of Stroke Incidence vs. Diabetes Status, by Sex and Age 80 or Older",30)) + theme(plot.title = element_text(hjust = 0.5))
 
 ```
+
+The results are, perhaps, not surprising.  In the youngest age bracket, there are almost no incidences of stroke, regardless of diabetic status.  There are also few instances of diabetes.  With increasing age, more respondents report having strokes, regardless of diabetes status.  However, the proportion of strokes is higher among prediabetics and diabetics than among nondiabetics.
 
 
 ### Scatterplots & Histograms For Numeric Variables
 
-We will examine the relationship between the number of days of poor mental health (in the past 30 days) and the number of days of physical illness or injury (in the past 30 days), by age bracket:
+We will examine the relationship between the number of days of poor mental health (in the past 30 days) and the number of days of physical illness or injury (in the past 30 days), by age bracket, then filter for diabetes status:
 
 ```{r}
   ggplot(data,
@@ -371,57 +425,99 @@ We will examine the relationship between the number of days of poor mental healt
            x=PhysHlth,y=MentHlth,color=Age)) +
   geom_point(alpha=0.01) +
   geom_jitter(width = 0.2, alpha = 0.01) +
-  geom_smooth(method = lm, level=0)
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Mental Health vs. Physical Health, by Age",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+  ggplot(data |> filter(Diabetes_binary == "no diabetes"),
+         aes(
+           x=PhysHlth,y=MentHlth,color=Age)) +
+  geom_point(alpha=0.01) +
+  geom_jitter(width = 0.2, alpha = 0.01) +
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Mental Health vs. Physical Health, by Age (No Diabetes)",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+  ggplot(data |> filter(Diabetes_binary == "prediabetes or diabetes"),
+         aes(
+           x=PhysHlth,y=MentHlth,color=Age)) +
+  geom_point(alpha=0.01) +
+  geom_jitter(width = 0.2, alpha = 0.01) +
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Mental Health vs. Physical Health, by Age (Prediabetes or Diabetes)",30)) + theme(plot.title = element_text(hjust = 0.5))
 
 ```
 
 For people younger than 60, there is a stronger association between mental and physical health than for people over 60, and especially than for people over 70.
 
-Next, we will examine the relationship of each of these to BMI:
+Next, we will examine the relationship of each of these to BMI, then stratify according to diabetes status:
 
 ```{r}
-ggplot(data,
+  ggplot(data,
          aes(
            x=BMI,y=PhysHlth,color=Age)) +
   geom_point(alpha = 0.01) +
   geom_jitter(width = 0.2, alpha=0.01) +
-  geom_smooth(method = lm, level=0)
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Physical Health vs. BMI, by Age",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+  ggplot(data |> filter(Diabetes_binary == "no diabetes"),
+         aes(
+           x=BMI,y=PhysHlth,color=Age)) +
+  geom_point(alpha = 0.01) +
+  geom_jitter(width = 0.2, alpha=0.01) +
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Physical Health vs. BMI for Non-Diabetics, by Age",30)) + theme(plot.title = element_text(hjust = 0.5))
+  
+  ggplot(data |> filter(Diabetes_binary == "prediabetes or diabetes"),
+         aes(
+           x=BMI,y=PhysHlth,color=Age)) +
+  geom_point(alpha = 0.01) +
+  geom_jitter(width = 0.2, alpha=0.01) +
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Physical Health vs. BMI for Prediabetics and Diabetics, by Age",30)) + theme(plot.title = element_text(hjust = 0.5))
   
   ggplot(data,
          aes(
            x=BMI,y=MentHlth,color=Age)) +
   geom_point(alpha = 0.01) +
   geom_jitter(width = 0.2, alpha=0.01) +
-  geom_smooth(method = lm, level=0)
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Mental Health vs. BMI, by Age",30)) + theme(plot.title = element_text(hjust = 0.5))
+  
+  ggplot(data |> filter(Diabetes_binary == "no diabetes"),
+         aes(
+           x=BMI,y=MentHlth,color=Age)) +
+  geom_point(alpha = 0.01) +
+  geom_jitter(width = 0.2, alpha=0.01) +
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Mental Health vs. BMI for Non-Diabetics, by Age",30)) + theme(plot.title = element_text(hjust = 0.5))
+  
+  ggplot(data |> filter(Diabetes_binary == "prediabetes or diabetes"),
+         aes(
+           x=BMI,y=MentHlth,color=Age)) +
+  geom_point(alpha = 0.01) +
+  geom_jitter(width = 0.2, alpha=0.01) +
+  geom_smooth(method = lm, level=0) + ggtitle(str_wrap("Scatterplot of Mental Health vs. BMI for Prediabetics and Diabetics, by Age",30)) + theme(plot.title = element_text(hjust = 0.5))
   
 ```
+
+The association between physical health and BMI grows stronger with age.  We can see this by 
 
 Then, we will examine the distributions of PhysHlth, MentHlth, and BMI based on whether individuals have diabetes.
 
 ```{r}
-ggplot(data |> filter(PhysHlth > 1 & PhysHlth < 30),
+ggplot(data,
        aes(
          x=PhysHlth
        )) + 
   geom_histogram(alpha=0.5,
-    aes(y=after_stat(density),
-        fill = Diabetes_binary, 
+    aes(fill = Diabetes_binary, 
         col=I("black")),
     position = "identity",
     binwidth=1) + 
-  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("PhysHlth") + ylab("Density") + ggtitle(str_wrap("Number of Respondents per Number of Days of Physical Illness or Injury, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("PhysHlth") + ylab("Count") + ggtitle(str_wrap("Count of Respondents per Number of Days of Physical Illness or Injury, by Diabetes Status",30)) + theme(plot.title = element_text(hjust = 0.5))
 
-ggplot(data |> filter(MentHlth > 1 & MentHlth < 30),
+ggplot(data,
        aes(
          x=MentHlth
        )) + 
   geom_histogram(alpha=0.5,
-    aes(y=after_stat(density),
-        fill = Diabetes_binary, 
+    aes(fill = Diabetes_binary, 
         col=I("black")),
     position = "identity",
     binwidth=1) + 
-  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("MentHlth") + ylab("Density") + ggtitle(str_wrap("Number of Respondents per Number of Poor Mental Health Days, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("MentHlth") + ylab("Count") + ggtitle(str_wrap("Count of Respondents per Number of Poor Mental Health Days, by Diabetes Status",30)) + theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(data,
        aes(
@@ -433,28 +529,78 @@ ggplot(data,
         col=I("black")),
     position = "identity",
     binwidth=1) + 
-  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("BMI") + ylab("Density") + ggtitle(str_wrap("Number of Respondents per BMI, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("BMI") + ylab("Density") + ggtitle(str_wrap("Density of Respondents per BMI, by Diabetes Status",30)) + theme(plot.title = element_text(hjust = 0.5))
 
-ggplot(data) +
-geom_boxplot(aes(x = Sex, y = BMI, fill = Diabetes_binary)) + scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
-  facet_wrap(~ Age,nrow=7,ncol=2)
 ```
+
+Most of the respondents indicated no poor mental health or poor physical health days.  However, the ratio of prediabetics or diabetics to nondiabetics who reported number of days of physical illness or injury was greater at 30 days than at 0 days; the same is true for poor mental health days.  However, this only shows an association and does not prove that the respondents' illnesses were due to diabetes or something else.
+
+The density of respondents by BMI, by diabetes status, shows a higher BMI for prediabetics and diabetics than for nondiabetics.  (This is elucidated more clearly in the box plots below.). The peak density of respondents is the same at just over 25 BMI.  However, the nondiabetic respondents' BMI values fall off much more quickly than the prediabetic and diabetic respondents' BMI values.
+
+
+### Box Plots
+
+We will look at box plots to see how the BMI varies by sex and diabetes status:
 
 ```{r}
-quantile(data$BMI, probs = c(0.01,0.9,0.95,0.99))
+ggplot(data |> filter(Age %in% c("18 to 24","25 to 29")), aes(x = Sex, y = BMI, fill = Diabetes_binary)) +
+geom_boxplot(, outlier.alpha=0.1) +
+  stat_summary(fun = mean, color = "red", position = position_dodge(0.75),
+                geom = "point", shape = 20, size = 1,
+                show.legend = FALSE) +  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  facet_wrap(~ Age)
 
-nrow(data[data$BMI>50, ])
+ggplot(data |> filter(Age %in% c("30 to 34","35 to 39")), aes(x = Sex, y = BMI, fill = Diabetes_binary)) +
+geom_boxplot(, outlier.alpha=0.1) +
+  stat_summary(fun = mean, color = "red", position = position_dodge(0.75),
+                geom = "point", shape = 20, size = 1,
+                show.legend = FALSE) +  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  facet_wrap(~ Age)
 
-nrow(data[data$BMI<18, ])
+ggplot(data |> filter(Age %in% c("40 to 44","45 to 49")), aes(x = Sex, y = BMI, fill = Diabetes_binary)) +
+geom_boxplot(, outlier.alpha=0.1) +
+  stat_summary(fun = mean, color = "red", position = position_dodge(0.75),
+                geom = "point", shape = 20, size = 1,
+                show.legend = FALSE) +  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  facet_wrap(~ Age)
 
-min(data$BMI)
-max(data$BMI)
+ggplot(data |> filter(Age %in% c("50 to 54","55 to 59")), aes(x = Sex, y = BMI, fill = Diabetes_binary)) +
+geom_boxplot(, outlier.alpha=0.1) +
+  stat_summary(fun = mean, color = "red", position = position_dodge(0.75),
+                geom = "point", shape = 20, size = 1,
+                show.legend = FALSE) +  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  facet_wrap(~ Age)
 
-data |>
-  filter(BMI<18) |>
-  select(BMI) |>
-  arrange(BMI)
-                 
+ggplot(data |> filter(Age %in% c("60 to 64","65 to 69")), aes(x = Sex, y = BMI, fill = Diabetes_binary)) +
+geom_boxplot(, outlier.alpha=0.1) +
+  stat_summary(fun = mean, color = "red", position = position_dodge(0.75),
+                geom = "point", shape = 20, size = 1,
+                show.legend = FALSE) +  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  facet_wrap(~ Age)
+
+ggplot(data |> filter(Age %in% c("70 to 74","75 to 79")), aes(x = Sex, y = BMI, fill = Diabetes_binary)) +
+geom_boxplot(, outlier.alpha=0.1) +
+  stat_summary(fun = mean, color = "red", position = position_dodge(0.75),
+                geom = "point", shape = 20, size = 1,
+                show.legend = FALSE) +  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  facet_wrap(~ Age)
+
+ggplot(data |> filter(Age == "80 or older"), aes(x = Sex, y = BMI, fill = Diabetes_binary)) +
+geom_boxplot(, outlier.alpha=0.1) +
+  stat_summary(fun = mean, color = "red", position = position_dodge(0.75),
+                geom = "point", shape = 20, size = 1,
+                show.legend = FALSE) +  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  facet_wrap(~ Age)
+
 ```
 
+Among the 18 to 29 age bracket, the distributions of BMI look right-skewed regardless of sex or diabetes status.  30 to 34 year old nondiabetic females continue to show a right-skewed distribution of BMI.  The mean BMI (red dot) is notably higher than the median BMI in diabetic males and females between 18 and 29 years compared with other age brackets.
+
+Interestingly, 45 to 49 year old prediabetic and diabetic females show a slight right-skewed BMI again, as do 55 to 59 year old prediabetic and diabetic males.
+
+60 to 69 year old nondiabetic males show a right-skewed BMI distribution, as do 70 to 74 year old males and 80 or older females with no diabetes.
+
+It is unclear without doing more analysis to determine why the BMI are skewed (lifestyle or other factors).  Also, it is possibly beyond the scope of investigating diabetes status.
+
+In most of the age brackets, prediabetics and diabetics have a wider IQR for their BMI than nondiabetics.  The 1st, 2nd, and 3rd quartiles of prediabetics and diabetics tend to be higher than those of nondiabetics.  Females with prediabetes or diabetes have medians that are near or above the 3rd quartile of nondiabetic women.  This trend persists across age brackets.
 
