@@ -8,7 +8,7 @@ editor: visual
 
 ## Introduction
 
-Write an intro!  We will include (at least) 5 predictors in this model:  (ORIGINALS! age, sex, income, smoker, and heart disease or attack) sex, income, stroke, heart disease or attack, and heavy alcohol consumption.
+Write an intro!  We will include (at least) 5 predictors in this model: sex, income, stroke, heart disease or attack, and heavy alcohol consumption.
 
 We will load the libraries and read in the data here:
 ```{r}
@@ -31,7 +31,7 @@ data
 Next, we will convert variables to factor variables, where appropriate:
 
 ```{r}
-data <- data |>
+dbhi_data <- data |>
   mutate(Diabetes_binary=
            factor(Diabetes_binary,
                   levels=c("0","1"),
@@ -117,15 +117,6 @@ data <- data |>
 
 ```
 
-Now, subset the data to look at the 5 predictors:
-
-```{r}
-dbhi_data <- data #|> 
-#  select(Diabetes_binary,Age,HeartDiseaseorAttack,Income,Sex,Smoker)
-dbhi_data
-
-```
-
 
 ## Split the Data
 
@@ -159,10 +150,10 @@ Get a recipe.   Then, standardize the numeric variables since their scales are p
 #bystanders
 
 #dbhi_train
-#Diabetes_binary ~ Age + HeartAttackorDisease + Income + Sex + HvyAlcoholConsump
-#ORIGINALS:  update_role(HighBP,HighChol,CholCheck,Stroke,HeartDiseaseorAttack,PhysActivity,Fruits,Veggies,HvyAlcoholConsump,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") 
+#Diabetes_binary ~ Age + Sex + Income + Stroke + HeartAttackorDisease + HvyAlcoholConsump
+
 dbhi_recipe <- recipe(Diabetes_binary ~ ., data = dbhi_train) |>
-  update_role(Age,Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") |>
+  update_role(Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") |>
   step_dummy(all_nominal_predictors()) |>
   step_normalize(all_numeric(), -all_outcomes()) #|>
 #  summary()

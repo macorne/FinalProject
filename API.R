@@ -2,7 +2,9 @@
 library(GGally)
 library(baguette)
 library(glmnet)
+library(lattice)
 library(lubridate)
+library(plumber)
 library(ranger)
 library(tidymodels)
 library(tidyverse)
@@ -136,79 +138,48 @@ function(){
 }
 
 #http://localhost:9000/info
+#http://127.0.0.1:9071/__docs__/info
 
 
 #* pred endpoint 
-#Below this API put three example function calls to the API in
-#comments so that I can easily copy and paste to check that it works!
-#* @param Sex sex
-#* @param Income income
-#* @param Stroke stroke
-#* @param HeartDiseaseorAttack heart disease or attack
-#* @param HvyAlcoholConsumpt heavy alcohol consumption
+#* @param Sex female or male
+#* @param Income Less than $10,000, $10,000 to less than $15,000, $15,000 to less than $20,000, $20,000 to less than $25,000, $25,000 to less than $35,000, $35,000 to less than $50,000, $50,000 to less than $75,000, $75,000 or more
+#* @param Stroke no or yes
+#* @param HeartDiseaseorAttack no or yes
+#* @param HvyAlcoholConsump no or yes
 #* @get /pred
 function(Sex = "female", 
          Income = "$35,000 to less than $50,000", 
          Stroke = "no", 
          HeartDiseaseorAttack = "no", 
-         HvyAlcoholConsumpt = "no"){
+         HvyAlcoholConsump = "no"){
   
 }
 
-#query with http://localhost:9000/pred?Sex=0&Income=8&Stroke=0&HeartDiseaseorAttack=0&HvyAlcoholConsump=0
+#http://localhost:9000/pred?Sex=female&Income=$35,000%20to%20less%20than%20$50,000&Stroke=no&HeartDiseaseorAttack=no&HvyAlcoholConsump=no
+#http://127.0.0.1:9071/__docs__/pred?Sex=female&Income=$35,000%20to%20less%20than%20$50,000&Stroke=no&HeartDiseaseorAttack=no&HvyAlcoholConsump=no
 
-#* confusion endpoint 
-#This endpoint should produce a plot of the confusion matrix for your model fit.
-#That is, comparing the predictions from the model to the actual values from the 
-#data set (again)                                                                                              you fit the model on the entire data set for this part).
-#* @serializer png
-#* @param type base or ggally
-#* @param color TRUE or FALSE (only for ggally)
+#* confusion endpoint
 #* @get /confusion
-function(type = "heatmap", color = FALSE){
-  if(tolower(type) == "ggally"){
-    if(color){
-      a <- GGally::ggpairs(iris, aes(color = Species))
-      print(a)
-    } else {
-      a <- GGally::ggpairs(iris)
-      print(a)
-    }
-  } else {
-    pairs(iris)
-  }
-}
-#http://localhost:9000/plotiris?type=ggally
-
-
-#* Plotting widget
-#* @serializer htmlwidget
-#* @param lat latitude
-#* @param lng longitude
-#* @get /map
-function(lng = 174.768, lat = -36.852){
-  m <- leaflet::leaflet() |>
-    addTiles() |>  # Add default OpenStreetMap map tiles
-    addMarkers(as.numeric(lng), as.numeric(lat))
-  m  # Print the map
+#* @serializer png
+#* @param type heatmap or mosaic
+function(type = "heatmap"){
+  cm <- dbhi_data |> 
+    mutate(
+      estimate = best_model |> 
+        predict(dbhi_data) |> 
+        pull()) |>
+    conf_mat(Diabetes_binary,estimate)
+  
+  
+  #cmplot <- autoplot(cm, type)
+  cmplot <- levelplot(cm$table, cuts=1, col.regions=c("red", "blue"))
+   
+#  ffplot <- fourfoldplot(cm$table, color = c("#CC6666", "#99CC99"),
+#  conf.level = 0, margin = 1, main = "Confusion Matrix")
+  
+  print(cmplot)
 }
 
-#query with http://localhost:9000/map?lng=174&lat=-36
-
-
-# Choose a predictor
-#* @param predictor
-#* @get /pred
-function(predictor) {
-  data <- iris
-  if (is.numeric(data[[predictor]])) {
-    value <- mean(data[[predictor]])
-    message <- paste("The mean of", predictor, "is", value)
-    return(message)
-  } else if (predictor == "Species") {
-    table <- table(data[[predictor]])
-    return(paste0(names(table), ": ", table))
-  } else {
-    stop("Invalid predictor.")
-  }
-}
+#http://localhost:9000/confusion?type=heatmap
+#http://127.0.0.1:9071/__docs__/confusion?type=heatmap

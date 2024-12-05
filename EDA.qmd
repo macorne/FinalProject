@@ -14,10 +14,12 @@ We will explore the Centers for Disease Control and Prevention (CDC) Behavioral 
 1.  Can we use a subset of the risk factors to accurately predict whether an individual has diabetes?
 
 
-
 ## Read In The Data
 
+We will first read in the data:
+
 ```{r}
+library(ascii)
 library(tidyverse)
 library(tidymodels)
 library(vroom)
@@ -28,16 +30,24 @@ data
 
 ```
 
+We have 22 variables:  1 response (Diabetes_binary) and 21 possible predictors.  From the 21, we will choose 6:  Age, Sex, Income, Stroke, Heart Disease or Attack, and Heavy Alcohol Consumption.  We are focusing on these variables as predictors because they are related both to lifestyle and to health.
+
+Other variables, such as Age or Body Mass Index (BMI), are interesting but may be less helpful.  Diabetes comes in different forms - at least Type 1 and Type 2 but possibly more - and we expect there to be fewer instances of diabetes (especially Type 2) among the young.
+
+The BMI is dubious as a predictor because two people may share the same BMI but have very different body compositions; these differences can manifest as health problems for one person but not another.  Since we lack family history, height, or weight of the respondents in this dataset, we can't easily make an assessment.  Further, since many of the variables are categorical, we cannot find correlations between them and any of the numeric variables.
+
+
 ## Determine The Rate of Missing Values
 
+We want to check for missing values, since these can impact our results.
+
 ```{r}
-#The `echo: false` option disables the printing of code (only output is displayed).
 data |>
   is.na() |>
   colSums()
 
 ```
-The sums are 0 for each column, so there is no missing data.
+The sums are 0 for each column, so there is no missing data.  Otherwise, would might need to exclude observations or come up with a reasonable scheme for handling the missing observations.
 
 
 ## How The Data Is Stored
@@ -45,19 +55,11 @@ The sums are 0 for each column, so there is no missing data.
 We will check for column type and values.
 
 ```{r}
-#readr::spec(data)
 attributes(data)$spec
+
 ```
 
-## Basic Data Validation
-
-Summarize each column to see if there are any unusual values.
-
-```{r}
-summary(data)
-```
-
-It appears that BMI is given as a percentile (otherwise, 98 would be quite high).  We have a number of categorical variables that would be good to convert to factors.
+We have a number of categorical variables that would be good to convert to factors.
 
 ```{r}
 data <- data |>
@@ -146,72 +148,153 @@ data <- data |>
 
 ```
 
-## Clean Up Data As Needed
+
+## Basic Data Validation
+
+Summarize each column to see if there are any unusual values.
 
 ```{r}
-
+summary(data)
 ```
+
+The categorical variables are summarized into (vertical) one-way contingency tables in descending order of number of respondents.  Note that for more than six categories, the summaries lump values into "(Other)."  We obtain measures of center and spread for the numerical variables.  Some of the BMI values are extremely low or high; we will examine these when we perform a numerical analysis.  
 
 ## Investigate Distributions
 
-### Contingency Tables
+### Contingency Tables for Predictors and Responses
 
-We will examine one-, two-, and three-way contingency tables.  For the one-way contingency table related to the diabetes status of respondents:
+We will examine one-, two-, and three-way contingency tables for the predictors and response.  We will also include Age for some assessments, since it may provide insight about certain categories.  
 
-```{r}
-#One-way contingency table for response
-table(dbhi_data$Diabetes_binary)
+#### One-Way Contingency Tables
 
-#One-way contingency tables for predictors
-table(dbhi_data$Sex)
-table(dbhi_data$Income)
-table(dbhi_data$Stroke)
-table(dbhi_data$HeartDiseaseorAttack)
-table(dbhi_data$HvyAlcoholConsump)
-
-
-```
-For the two-way contingency tables:
+For the one-way contingency table related to the response:
 
 ```{r}
-#Two-way contingency tables
-table(data$Sex,data$Diabetes_binary)
-table(data$Age,data$Diabetes_binary)
-table(data$Education,data$Diabetes_binary)
-table(data$Income,data$Diabetes_binary)
-table(data$GenHlth,data$Diabetes_binary)
-table(data$Smoker,data$Diabetes_binary)
-table(data$HvyAlcoholConsump,data$Diabetes_binary)
-#table(data$MentHlth,data$Diabetes_binary)
-#table(data$PhysHlth,data$Diabetes_binary)
-tbl <- table(data$DiffWalk,data$Diabetes_binary)
-prop.table(tbl,margin=1)
+table(data$Diabetes_binary,dnn="Diabetes_binary")
 
 ```
+
+For the predictors:
+```{r}
+table(data$Age,dnn="Age")
+
+```
+
+```{r}
+table(data$Sex,dnn="Sex")
+
+```
+
+```{r}
+table(data$Income,dnn="Income")
+
+```
+
+```{r}
+table(data$Stroke,dnn="Stroke")
+
+```
+
+```{r}
+table(data$HeartDiseaseorAttack,dnn="Heart Disease or Attack")
+
+```
+
+```{r}
+table(data$HvyAlcoholConsump,dnn="Heavy Alcohol Consumption")
+```
+
+#### Two-Way Contingency Tables
+
+Next, we consider two-way contingency tables between the predictors and the response.  We will use the `ascii` package so that we can make the tables look less muddled and more precise regarding categories.
+
+`Diabetes_binary` vs. `Age`:
+
+```{r}
+print(ascii(table(data$Age,data$Diabetes_binary,dnn=c("Age","Diabetes_binary"))),type="rest")
+
+```
+
+`Diabetes_binary` vs. `Sex`:
+```{r}
+print(ascii(table(data$Sex,data$Diabetes_binary,dnn=c("Sex","Diabetes_binary"))),type="rest")
+
+```
+
+`Diabetes_binary` vs. `Income`:
+```{r}
+print(ascii(table(data$Income,data$Diabetes_binary,dnn=c("Income","Diabetes_binary"))),type="rest")
+
+```
+
+`Diabetes_binary` vs. `Stroke`:
+```{r}
+print(ascii(table(data$Stroke,data$Diabetes_binary,dnn=c("Stroke","Diabetes_binary"))),type="rest")
+
+```
+
+`Diabetes_binary` vs. `HeartDiseaseorAttack`:
+```{r}
+print(ascii(table(data$HeartDiseaseorAttack,data$Diabetes_binary,dnn=c("Heart Disease or Attack","Diabetes_binary"))),type="rest")
+
+```
+
+`Diabetes_binary` vs. `HvyAlcoholConsump`:
+```{r}
+print(ascii(table(data$HvyAlcoholConsump,data$Diabetes_binary,dnn=c("Heavy Alcohol Consumption","Diabetes_binary"))),type="rest")
+
+```
+
+We will also examine a selection of two-way contingency tables among the different chosen predictors:
+
+`Sex` vs. `Age`:
+```{r}
+print(ascii(table(data$Age,data$Sex,dnn=c("Age","Sex"))),type="rest")
+
+```
+
+For respondents between 18 to 24, more males than females responded to the survey.  For the other age ranges, more females than males responded.  Also, above age 74, there are significantly more female than male respondents; it is well-known that the average lifespan of males is less than that of females.  So, it is likely that there are fewer males, compared with females, to respond to the survey.
+
+`HeartDiseaseorAttack` vs. `Stroke`:
+```{r}
+print(ascii(table(data$Stroke,data$HeartDiseaseorAttack,dnn=c("Stroke","Heart Disease or Attack"))),type="rest")
+
+```
+
+We see that among the respondents, some have been assessed to have both a stroke and heart disease.  
+
+`HvyAlcoholConsump` vs. `Stroke`:
+```{r}
+print(ascii(table(data$Stroke,data$HvyAlcoholConsump,dnn=c("Stroke","Heavy Alcohol Consumption"))),type="rest")
+
+```
+
+We see that few of the respondents are both heavy drinkers and have been assessed to have a stroke.  Also, we note that the largest numer of respondents report neither drinking heavily nor having been assessed to have had a stroke.  
+
+`HvyAlcoholConsump` vs. `HeartAttackorDisease`:
+```{r}
+print(ascii(table(data$HeartDiseaseorAttack,data$HvyAlcoholConsump,dnn=c("Heart Disease or Attack","Heavy Alcohol Consumption"))),type="rest")
+
+```
+
+We see that few of the respondents are both heavy drinkers and have heart disease or have had a heart attack.  Also, we note that the largest numer of respondents report neither drinking heavily nor having been assessed to have heart disease or a heart attack.  This is similar to heavy drinking vs. stroke.
+
+#### Three-Way Contingency Tables
 
 For three-way contingency tables:
 
 ```{r}
 #Three-way contingency tables
-tbl <- table(data$Age,data$DiffWalk,data$Diabetes_binary)
-table(data$Smoker,data$HvyAlcoholConsump,data$Diabetes_binary)
-```
-
-
-We can get the proportions of non-diabetic people who have difficulty walking, by age bracket:
-```{r}
-prop.table(tbl[, , "no diabetes"],margin=1)
+print(ascii(table(data$Age,data$Sex,data$Diabetes_binary)),type="rest")
 
 ```
 
-We can get the proportions of prediabetic or diabetic people who have difficulty walking, by age bracket:
 
-```{r}
-prop.table(tbl[, , "prediabetes or diabetes"],margin=1)
 
-```
 
-We will summarize our numeric variables:
+#### Numeric Summaries
+
+We will summarize our numeric variables over the entire set of respondents, then filter for diabetes status:
 
 ```{r}
 summary(data |>
@@ -226,7 +309,6 @@ summary(data |>
           select(where(is.numeric)))
 
 ```
-
 
 We will examine correlations among our numeric variables:
 
@@ -250,77 +332,67 @@ data |>
 
 ```
 
+The correlations between the different numeric variables are not strong.  The strongest correlation is between mental and physical health, which is not surprising.  For non-diabetics, the correlation between mental and physical health is weaker than for prediabetics and diabetics.  The BMI is very weakly correlated with mental and physical health, regardless of diabetes status.
 
-### Bar Charts & Heatmaps
+### Bar Charts
 
 We will look at bar charts and heatmaps relating diabetes status and walking difficulty across different age brackets:
 
 ```{r}
 ggplot(data, 
        aes(
-         x = Diabetes_binary, fill = DiffWalk)) +
+         x = Diabetes_binary, fill = Age)) +
   geom_bar(position = "dodge") +
-  scale_fill_discrete("DiffWalk") +
-  facet_wrap(~ Age)
-
-data |> 
-  count(Age, DiffWalk, Diabetes_binary) |>  
-  ggplot(aes(x = DiffWalk, y = Diabetes_binary)) +
-  geom_tile(aes(fill = n)) +
-  facet_wrap(~ Age)
+  scale_fill_discrete("Age") +
+  facet_wrap(~ Sex)
 
 ```
 
-We will also look for relationships between diabetes status, smoking, and alcohol consumption across age brackets:
+We will also look for relationships between diabetes status, sex, and alcohol consumption across age brackets:
 
 ```{r}
-data |> 
-  count(Age, Smoker, Diabetes_binary) |>  
-  ggplot(aes(x = Smoker, y = Diabetes_binary)) +
-  geom_tile(aes(fill = n)) +
-  scale_fill_gradientn(colours = c("#E69F00", "#56B4E9"), values = c(0,0.3,1)) +
-  facet_wrap(~ Age)
-
-data |> 
-  count(Age, HvyAlcoholConsump, Diabetes_binary) |>  
-  ggplot(aes(x = HvyAlcoholConsump, y = Diabetes_binary)) +
-  geom_tile(aes(fill = n)) +
-  scale_fill_gradientn(colours = c("#E69F00", "#56B4E9"), values = c(0,0.3,1)) +
-  facet_wrap(~ Age)
+ggplot(data, 
+       aes(
+         x = Diabetes_binary, fill = Stroke)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("Stroke") +
+  facet_wrap(~ HeartDiseaseorAttack)
 
 ```
 
 
 ### Scatterplots & Histograms For Numeric Variables
 
-We will examine the relationship between the number of days of poor mental health (in the past 30 days) and the number of days of physical illness or injury (in the past 30 days):
+We will examine the relationship between the number of days of poor mental health (in the past 30 days) and the number of days of physical illness or injury (in the past 30 days), by age bracket:
 
 ```{r}
-  ggplot(data |> filter(Age == "18 to 24"),
+  ggplot(data,
          aes(
-           x=PhysHlth,y=MentHlth,color=GenHlth)) +
-  geom_point(size=0.01) +
-  geom_jitter(width = 0.2, alpha = 0.3) +
-  geom_smooth(method = lm)
+           x=PhysHlth,y=MentHlth,color=Age)) +
+  geom_point(alpha=0.01) +
+  geom_jitter(width = 0.2, alpha = 0.01) +
+  geom_smooth(method = lm, level=0)
 
 ```
+
+For people younger than 60, there is a stronger association between mental and physical health than for people over 60, and especially than for people over 70.
 
 Next, we will examine the relationship of each of these to BMI:
 
 ```{r}
 ggplot(data,
          aes(
-           x=BMI,y=PhysHlth)) +
-  geom_point() +
-  geom_jitter(width = 0.2, alpha = 0.3) +
-  geom_smooth(method = lm)
+           x=BMI,y=PhysHlth,color=Age)) +
+  geom_point(alpha = 0.01) +
+  geom_jitter(width = 0.2, alpha=0.01) +
+  geom_smooth(method = lm, level=0)
   
   ggplot(data,
          aes(
-           x=BMI,y=MentHlth)) +
-  geom_point() +
-  geom_jitter(width = 0.2, alpha = 0.3) +
-  geom_smooth(method = lm)
+           x=BMI,y=MentHlth,color=Age)) +
+  geom_point(alpha = 0.01) +
+  geom_jitter(width = 0.2, alpha=0.01) +
+  geom_smooth(method = lm, level=0)
   
 ```
 
@@ -332,39 +404,40 @@ ggplot(data |> filter(PhysHlth > 1 & PhysHlth < 30),
          x=PhysHlth
        )) + 
   geom_histogram(alpha=0.5,
-    aes(y=..density..,
+    aes(y=after_stat(density),
         fill = Diabetes_binary, 
         col=I("black")),
     position = "identity",
     binwidth=1) + 
-  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("PhysHlth") + ylab("Count") + ggtitle(str_wrap("Number of Respondents per Number of Days of Physical Illness or Injury, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("PhysHlth") + ylab("Density") + ggtitle(str_wrap("Number of Respondents per Number of Days of Physical Illness or Injury, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(data |> filter(MentHlth > 1 & MentHlth < 30),
        aes(
          x=MentHlth
        )) + 
   geom_histogram(alpha=0.5,
-    aes(y=..density..,
+    aes(y=after_stat(density),
         fill = Diabetes_binary, 
         col=I("black")),
     position = "identity",
     binwidth=1) + 
-  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("MentHlth") + ylab("Count") + ggtitle(str_wrap("Number of Respondents per Number of Poor Mental Health Days, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("MentHlth") + ylab("Density") + ggtitle(str_wrap("Number of Respondents per Number of Poor Mental Health Days, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(data,
        aes(
          x=BMI
        )) + 
   geom_histogram(alpha=0.5,
-    aes(y=..density..,
+    aes(y=after_stat(density),
         fill = Diabetes_binary, 
         col=I("black")),
     position = "identity",
     binwidth=1) + 
-  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("BMI") + ylab("Count") + ggtitle(str_wrap("Number of Respondents per BMI, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
+  scale_fill_manual(values=c("#E69F00", "#56B4E9")) + xlab("BMI") + ylab("Density") + ggtitle(str_wrap("Number of Respondents per BMI, by Presence or Absence of Diabetes",30)) + theme(plot.title = element_text(hjust = 0.5))
 
 ggplot(data) +
-geom_boxplot(aes(x = Sex, y = BMI, fill = Diabetes_binary)) + scale_fill_manual(values=c("#E69F00", "#56B4E9"))
+geom_boxplot(aes(x = Sex, y = BMI, fill = Diabetes_binary)) + scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
+  facet_wrap(~ Age,nrow=7,ncol=2)
 ```
 
 ```{r}
