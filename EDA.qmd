@@ -29,7 +29,7 @@ data
 
 ```
 
-We have 22 variables: 1 response (Diabetes_binary) and 21 possible predictors. From the 21, we will choose 5: Age, Sex, Stroke, Heart Disease or Attack, and Heavy Alcohol Consumption. We are focusing on these variables as predictors because they are related both to lifestyle and to health.
+We have 22 variables: 1 response (Diabetes_binary) and 21 possible predictors. From the 21, we will choose 6: Age, Sex, No Doctor Because of Cost, Stroke, Heart Disease or Attack, and Heavy Alcohol Consumption. We are focusing on these variables as predictors because they are related both to lifestyle and to health.
 
 Other variables, such as Age or Body Mass Index (BMI), are interesting but may be less helpful. Diabetes comes in different forms - at least Type 1 and Type 2 but possibly more - and we expect there to be fewer instances of diabetes (especially Type 2) among the young.
 

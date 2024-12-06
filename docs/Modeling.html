@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.555">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -35,7 +35,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
   { counter-reset: source-line 0; }
@@ -149,26 +149,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>Write an intro! We will include (at least) 5 predictors in this model: (ORIGINALS! age, sex, income, smoker, and heart disease or attack) sex, income, stroke, heart disease or attack, and heavy alcohol consumption.</p>
+<p>Write an intro! We will include 6 predictors in this model: age, sex, no doctor because of cost, stroke, heart disease or attack, and heavy alcohol consumption. (We tried income but swapped it for age in a 5-predictor model.)</p>
 <p>We will load the libraries and read in the data here:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(baguette)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Loading required package: parsnip</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(corrplot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>corrplot 0.95 loaded</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Loading required package: Matrix</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Loaded glmnet 4.1-8</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'lubridate'</code></pre>
@@ -178,10 +173,8 @@ Attaching package: 'lubridate'</code></pre>
 
     date, intersect, setdiff, union</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#library(randomForest)</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>── Attaching packages ────────────────────────────────────── tidymodels 1.2.0 ──</code></pre>
 </div>
@@ -189,28 +182,29 @@ Attaching package: 'lubridate'</code></pre>
 <pre><code>✔ broom        1.0.6     ✔ rsample      1.2.1
 ✔ dials        1.3.0     ✔ tibble       3.2.1
 ✔ dplyr        1.1.4     ✔ tidyr        1.3.1
-✔ infer        1.0.7     ✔ tune         1.2.1
-✔ modeldata    1.4.0     ✔ workflows    1.1.4
-✔ purrr        1.0.2     ✔ workflowsets 1.1.0
-✔ recipes      1.1.0     ✔ yardstick    1.3.1</code></pre>
+✔ ggplot2      3.5.1     ✔ tune         1.2.1
+✔ infer        1.0.7     ✔ workflows    1.1.4
+✔ modeldata    1.4.0     ✔ workflowsets 1.1.0
+✔ purrr        1.0.2     ✔ yardstick    1.3.1
+✔ recipes      1.1.0     </code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>── Conflicts ───────────────────────────────────────── tidymodels_conflicts() ──
 ✖ purrr::discard()  masks scales::discard()
 ✖ tidyr::expand()   masks Matrix::expand()
 ✖ dplyr::filter()   masks stats::filter()
-✖ recipes::fixed()  masks stringr::fixed()
 ✖ dplyr::lag()      masks stats::lag()
 ✖ tidyr::pack()     masks Matrix::pack()
 ✖ recipes::step()   masks stats::step()
 ✖ tidyr::unpack()   masks Matrix::unpack()
 ✖ recipes::update() masks Matrix::update(), stats::update()
-• Dig deeper into tidy modeling with R at https://www.tmwr.org</code></pre>
+• Learn how to get started at https://www.tidymodels.org/start/</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ forcats 1.0.0     ✔ readr   2.1.5</code></pre>
+✔ forcats 1.0.0     ✔ stringr 1.5.1
+✔ readr   2.1.5     </code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
@@ -218,14 +212,14 @@ Attaching package: 'lubridate'</code></pre>
 ✖ purrr::discard()    masks scales::discard()
 ✖ tidyr::expand()     masks Matrix::expand()
 ✖ dplyr::filter()     masks stats::filter()
-✖ recipes::fixed()    masks stringr::fixed()
+✖ stringr::fixed()    masks recipes::fixed()
 ✖ dplyr::lag()        masks stats::lag()
 ✖ tidyr::pack()       masks Matrix::pack()
 ✖ readr::spec()       masks yardstick::spec()
 ✖ tidyr::unpack()     masks Matrix::unpack()
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vip)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vip)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'vip'
@@ -234,7 +228,7 @@ The following object is masked from 'package:utils':
 
     vi</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vroom)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vroom)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'vroom'
@@ -256,9 +250,9 @@ The following object is masked from 'package:scales':
 
     col_factor</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#diabetes_binary_health_indicators_BRFSS2015.csv</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">#dbhi = diabetes binary health indicators</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"diabetes_binary_health_indicators_BRFSS2015.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co">#diabetes_binary_health_indicators_BRFSS2015.csv</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">#dbhi = diabetes binary health indicators</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"diabetes_binary_health_indicators_BRFSS2015.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Rows: 253680 Columns: 22
 ── Column specification ────────────────────────────────────────────────────────
@@ -268,7 +262,7 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 ℹ Use `spec()` to retrieve the full column specification for this data.
 ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 253,680 × 22
    Diabetes_binary HighBP HighChol CholCheck   BMI Smoker Stroke
@@ -292,131 +286,100 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </div>
 <p>Next, we will convert variables to factor variables, where appropriate:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Diabetes_binary=</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Diabetes_binary,</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no diabetes"</span>,<span class="st">"prediabetes or diabetes"</span>)),</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">HighBP=</span></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HighBP,</span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no high BP"</span>,<span class="st">"high BP"</span>)),</span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">HighChol=</span></span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HighChol,</span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no high cholesterol"</span>,<span class="st">"high cholesterol"</span>)),</span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">CholCheck=</span></span>
-<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(CholCheck,</span>
-<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no cholesterol check in 5 years"</span>,<span class="st">"yes cholesterol check in 5 years"</span>)),</span>
-<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>         <span class="co">#BMI=factor(BMI),</span></span>
-<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">Smoker=</span></span>
-<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Smoker,</span>
-<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">Stroke=</span></span>
-<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Stroke,</span>
-<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>         <span class="at">HeartDiseaseorAttack=</span></span>
-<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HeartDiseaseorAttack,</span>
-<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">PhysActivity=</span></span>
-<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(PhysActivity,</span>
-<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>         <span class="at">Fruits=</span></span>
-<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Fruits,</span>
-<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>         <span class="at">Veggies=</span></span>
-<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Veggies,</span>
-<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>         <span class="at">HvyAlcoholConsump=</span></span>
-<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HvyAlcoholConsump,</span>
-<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a>         <span class="at">AnyHealthcare=</span></span>
-<span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(AnyHealthcare,</span>
-<span id="cb26-49"><a href="#cb26-49" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-50"><a href="#cb26-50" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-51"><a href="#cb26-51" aria-hidden="true" tabindex="-1"></a>         <span class="at">NoDocbcCost=</span></span>
-<span id="cb26-52"><a href="#cb26-52" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(NoDocbcCost,</span>
-<span id="cb26-53"><a href="#cb26-53" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-54"><a href="#cb26-54" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
-<span id="cb26-55"><a href="#cb26-55" aria-hidden="true" tabindex="-1"></a>         <span class="at">GenHlth=</span></span>
-<span id="cb26-56"><a href="#cb26-56" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(GenHlth,</span>
-<span id="cb26-57"><a href="#cb26-57" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>),</span>
-<span id="cb26-58"><a href="#cb26-58" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"excellent"</span>,<span class="st">"very good"</span>,<span class="st">"good"</span>,<span class="st">"fair"</span>,<span class="st">"poor"</span>)),</span>
-<span id="cb26-59"><a href="#cb26-59" aria-hidden="true" tabindex="-1"></a>         <span class="co">#MentHlth=</span></span>
-<span id="cb26-60"><a href="#cb26-60" aria-hidden="true" tabindex="-1"></a>           <span class="co">#factor(MentHlth),</span></span>
-<span id="cb26-61"><a href="#cb26-61" aria-hidden="true" tabindex="-1"></a>         <span class="co">#PhysHlth=</span></span>
-<span id="cb26-62"><a href="#cb26-62" aria-hidden="true" tabindex="-1"></a>           <span class="co">#factor(PhysHlth),</span></span>
-<span id="cb26-63"><a href="#cb26-63" aria-hidden="true" tabindex="-1"></a>         <span class="at">DiffWalk=</span></span>
-<span id="cb26-64"><a href="#cb26-64" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(DiffWalk,</span>
-<span id="cb26-65"><a href="#cb26-65" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-66"><a href="#cb26-66" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no difficulty walking"</span>,<span class="st">"yes difficulty walking"</span>)),</span>
-<span id="cb26-67"><a href="#cb26-67" aria-hidden="true" tabindex="-1"></a>         <span class="at">Sex=</span></span>
-<span id="cb26-68"><a href="#cb26-68" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Sex,</span>
-<span id="cb26-69"><a href="#cb26-69" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
-<span id="cb26-70"><a href="#cb26-70" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"female"</span>,<span class="st">"male"</span>)),</span>
-<span id="cb26-71"><a href="#cb26-71" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age=</span></span>
-<span id="cb26-72"><a href="#cb26-72" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Age,</span>
-<span id="cb26-73"><a href="#cb26-73" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"7"</span>,<span class="st">"8"</span>,<span class="st">"9"</span>,<span class="st">"10"</span>,<span class="st">"11"</span>,<span class="st">"12"</span>,<span class="st">"13"</span>),</span>
-<span id="cb26-74"><a href="#cb26-74" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"18 to 24"</span>,<span class="st">"25 to 29"</span>,<span class="st">"30 to 34"</span>,<span class="st">"35 to 39"</span>,<span class="st">"40 to 44"</span>,<span class="st">"45 to 49"</span>,<span class="st">"50 to 54"</span>,<span class="st">"55 to 59"</span>,<span class="st">"60 to 64"</span>,<span class="st">"65 to 69"</span>,<span class="st">"70 to 74"</span>,<span class="st">"75 to 79"</span>,<span class="st">"80 or older"</span>)),</span>
-<span id="cb26-75"><a href="#cb26-75" aria-hidden="true" tabindex="-1"></a>         <span class="at">Education=</span></span>
-<span id="cb26-76"><a href="#cb26-76" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Education,</span>
-<span id="cb26-77"><a href="#cb26-77" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>),</span>
-<span id="cb26-78"><a href="#cb26-78" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Never attended school or only kindergarten"</span>,<span class="st">"Grades 1 through 8 (Elementary)"</span>,<span class="st">"Grades 9 through 11 (Some high school)"</span>,<span class="st">"Grade 12 or GED (High school graduate)"</span>,<span class="st">"College 1 year to 3 years (Some college or technical school)"</span>,<span class="st">"College 4 years or more (College graduate)"</span>)),</span>
-<span id="cb26-79"><a href="#cb26-79" aria-hidden="true" tabindex="-1"></a>         <span class="at">Income=</span></span>
-<span id="cb26-80"><a href="#cb26-80" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Income,</span>
-<span id="cb26-81"><a href="#cb26-81" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"7"</span>,<span class="st">"8"</span>),</span>
-<span id="cb26-82"><a href="#cb26-82" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Less than $10,000"</span>,<span class="st">"$10,000 to less than $15,000"</span>,<span class="st">"$15,000 to less than $20,000"</span>,<span class="st">"$20,000 to less than $25,000"</span>,<span class="st">"$25,000 to less than $35,000"</span>,<span class="st">"$35,000 to less than $50,000"</span>,<span class="st">"$50,000 to less than $75,000"</span>,<span class="st">"$75,000 or more"</span>))</span>
-<span id="cb26-83"><a href="#cb26-83" aria-hidden="true" tabindex="-1"></a>         )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Now, subset the data to look at the 5 predictors:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>dbhi_data <span class="ot">&lt;-</span> data <span class="co">#|&gt; </span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co">#  select(Diabetes_binary,Age,HeartDiseaseorAttack,Income,Sex,Smoker)</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>dbhi_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 253,680 × 22
-   Diabetes_binary         HighBP     HighChol     CholCheck   BMI Smoker Stroke
-   &lt;fct&gt;                   &lt;fct&gt;      &lt;fct&gt;        &lt;fct&gt;     &lt;dbl&gt; &lt;fct&gt;  &lt;fct&gt; 
- 1 no diabetes             high BP    high choles… yes chol…    40 yes    no    
- 2 no diabetes             no high BP no high cho… no chole…    25 yes    no    
- 3 no diabetes             high BP    high choles… yes chol…    28 no     no    
- 4 no diabetes             high BP    no high cho… yes chol…    27 no     no    
- 5 no diabetes             high BP    high choles… yes chol…    24 no     no    
- 6 no diabetes             high BP    high choles… yes chol…    25 yes    no    
- 7 no diabetes             high BP    no high cho… yes chol…    30 yes    no    
- 8 no diabetes             high BP    high choles… yes chol…    25 yes    no    
- 9 prediabetes or diabetes high BP    high choles… yes chol…    30 yes    no    
-10 no diabetes             no high BP no high cho… yes chol…    24 no     no    
-# ℹ 253,670 more rows
-# ℹ 15 more variables: HeartDiseaseorAttack &lt;fct&gt;, PhysActivity &lt;fct&gt;,
-#   Fruits &lt;fct&gt;, Veggies &lt;fct&gt;, HvyAlcoholConsump &lt;fct&gt;, AnyHealthcare &lt;fct&gt;,
-#   NoDocbcCost &lt;fct&gt;, GenHlth &lt;fct&gt;, MentHlth &lt;dbl&gt;, PhysHlth &lt;dbl&gt;,
-#   DiffWalk &lt;fct&gt;, Sex &lt;fct&gt;, Age &lt;fct&gt;, Education &lt;fct&gt;, Income &lt;fct&gt;</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>dbhi_data <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Diabetes_binary=</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Diabetes_binary,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no diabetes"</span>,<span class="st">"prediabetes or diabetes"</span>)),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">HighBP=</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HighBP,</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no high BP"</span>,<span class="st">"high BP"</span>)),</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">HighChol=</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HighChol,</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no high cholesterol"</span>,<span class="st">"high cholesterol"</span>)),</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">CholCheck=</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(CholCheck,</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no cholesterol check in 5 years"</span>,<span class="st">"yes cholesterol check in 5 years"</span>)),</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">Smoker=</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Smoker,</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">Stroke=</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Stroke,</span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>         <span class="at">HeartDiseaseorAttack=</span></span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HeartDiseaseorAttack,</span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>         <span class="at">PhysActivity=</span></span>
+<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(PhysActivity,</span>
+<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a>         <span class="at">Fruits=</span></span>
+<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Fruits,</span>
+<span id="cb24-36"><a href="#cb24-36" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-37"><a href="#cb24-37" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-38"><a href="#cb24-38" aria-hidden="true" tabindex="-1"></a>         <span class="at">Veggies=</span></span>
+<span id="cb24-39"><a href="#cb24-39" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Veggies,</span>
+<span id="cb24-40"><a href="#cb24-40" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-41"><a href="#cb24-41" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-42"><a href="#cb24-42" aria-hidden="true" tabindex="-1"></a>         <span class="at">HvyAlcoholConsump=</span></span>
+<span id="cb24-43"><a href="#cb24-43" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(HvyAlcoholConsump,</span>
+<span id="cb24-44"><a href="#cb24-44" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-45"><a href="#cb24-45" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-46"><a href="#cb24-46" aria-hidden="true" tabindex="-1"></a>         <span class="at">AnyHealthcare=</span></span>
+<span id="cb24-47"><a href="#cb24-47" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(AnyHealthcare,</span>
+<span id="cb24-48"><a href="#cb24-48" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-49"><a href="#cb24-49" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-50"><a href="#cb24-50" aria-hidden="true" tabindex="-1"></a>         <span class="at">NoDocbcCost=</span></span>
+<span id="cb24-51"><a href="#cb24-51" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(NoDocbcCost,</span>
+<span id="cb24-52"><a href="#cb24-52" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-53"><a href="#cb24-53" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no"</span>,<span class="st">"yes"</span>)),</span>
+<span id="cb24-54"><a href="#cb24-54" aria-hidden="true" tabindex="-1"></a>         <span class="at">GenHlth=</span></span>
+<span id="cb24-55"><a href="#cb24-55" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(GenHlth,</span>
+<span id="cb24-56"><a href="#cb24-56" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>),</span>
+<span id="cb24-57"><a href="#cb24-57" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"excellent"</span>,<span class="st">"very good"</span>,<span class="st">"good"</span>,<span class="st">"fair"</span>,<span class="st">"poor"</span>)),</span>
+<span id="cb24-58"><a href="#cb24-58" aria-hidden="true" tabindex="-1"></a>         <span class="at">DiffWalk=</span></span>
+<span id="cb24-59"><a href="#cb24-59" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(DiffWalk,</span>
+<span id="cb24-60"><a href="#cb24-60" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-61"><a href="#cb24-61" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"no difficulty walking"</span>,<span class="st">"yes difficulty walking"</span>)),</span>
+<span id="cb24-62"><a href="#cb24-62" aria-hidden="true" tabindex="-1"></a>         <span class="at">Sex=</span></span>
+<span id="cb24-63"><a href="#cb24-63" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Sex,</span>
+<span id="cb24-64"><a href="#cb24-64" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"0"</span>,<span class="st">"1"</span>),</span>
+<span id="cb24-65"><a href="#cb24-65" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"female"</span>,<span class="st">"male"</span>)),</span>
+<span id="cb24-66"><a href="#cb24-66" aria-hidden="true" tabindex="-1"></a>         <span class="at">Age=</span></span>
+<span id="cb24-67"><a href="#cb24-67" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Age,</span>
+<span id="cb24-68"><a href="#cb24-68" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"7"</span>,<span class="st">"8"</span>,<span class="st">"9"</span>,<span class="st">"10"</span>,<span class="st">"11"</span>,<span class="st">"12"</span>,<span class="st">"13"</span>),</span>
+<span id="cb24-69"><a href="#cb24-69" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"18 to 24"</span>,<span class="st">"25 to 29"</span>,<span class="st">"30 to 34"</span>,<span class="st">"35 to 39"</span>,<span class="st">"40 to 44"</span>,<span class="st">"45 to 49"</span>,<span class="st">"50 to 54"</span>,<span class="st">"55 to 59"</span>,<span class="st">"60 to 64"</span>,<span class="st">"65 to 69"</span>,<span class="st">"70 to 74"</span>,<span class="st">"75 to 79"</span>,<span class="st">"80 or older"</span>)),</span>
+<span id="cb24-70"><a href="#cb24-70" aria-hidden="true" tabindex="-1"></a>         <span class="at">Education=</span></span>
+<span id="cb24-71"><a href="#cb24-71" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Education,</span>
+<span id="cb24-72"><a href="#cb24-72" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>),</span>
+<span id="cb24-73"><a href="#cb24-73" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Never attended school or only kindergarten"</span>,<span class="st">"Grades 1 through 8 (Elementary)"</span>,<span class="st">"Grades 9 through 11 (Some high school)"</span>,<span class="st">"Grade 12 or GED (High school graduate)"</span>,<span class="st">"College 1 year to 3 years (Some college or technical school)"</span>,<span class="st">"College 4 years or more (College graduate)"</span>)),</span>
+<span id="cb24-74"><a href="#cb24-74" aria-hidden="true" tabindex="-1"></a>         <span class="at">Income=</span></span>
+<span id="cb24-75"><a href="#cb24-75" aria-hidden="true" tabindex="-1"></a>           <span class="fu">factor</span>(Income,</span>
+<span id="cb24-76"><a href="#cb24-76" aria-hidden="true" tabindex="-1"></a>                  <span class="at">levels=</span><span class="fu">c</span>(<span class="st">"1"</span>,<span class="st">"2"</span>,<span class="st">"3"</span>,<span class="st">"4"</span>,<span class="st">"5"</span>,<span class="st">"6"</span>,<span class="st">"7"</span>,<span class="st">"8"</span>),</span>
+<span id="cb24-77"><a href="#cb24-77" aria-hidden="true" tabindex="-1"></a>                  <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"Less than $10,000"</span>,<span class="st">"$10,000 to less than $15,000"</span>,<span class="st">"$15,000 to less than $20,000"</span>,<span class="st">"$20,000 to less than $25,000"</span>,<span class="st">"$25,000 to less than $35,000"</span>,<span class="st">"$35,000 to less than $50,000"</span>,<span class="st">"$50,000 to less than $75,000"</span>,<span class="st">"$75,000 or more"</span>))</span>
+<span id="cb24-78"><a href="#cb24-78" aria-hidden="true" tabindex="-1"></a>         )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="split-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="split-the-data">Split the Data</h2>
 <p>Set the seed. Then, use functions from tidymodels to split the data into a training and test set (70/30 split). Then, use the strata argument to stratify the split on the <code>Sex</code> variable.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>dbhi_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(dbhi_data, <span class="at">prop =</span> <span class="fl">0.70</span>, <span class="at">strata=</span>Sex) <span class="co">#strata = argument goes in the parentheses, if needed</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>dbhi_train <span class="ot">&lt;-</span> <span class="fu">training</span>(dbhi_split)</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>dbhi_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(dbhi_split)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>dbhi_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(dbhi_data, <span class="at">prop =</span> <span class="fl">0.70</span>, <span class="at">strata=</span>Sex) <span class="co">#strata = argument goes in the parentheses, if needed</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>dbhi_train <span class="ot">&lt;-</span> <span class="fu">training</span>(dbhi_split)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>dbhi_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(dbhi_split)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We will perform 5-fold cross validation:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>dbhi_5_fold <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(dbhi_train, <span class="dv">5</span>)</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>dbhi_5_fold</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>dbhi_5_fold <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(dbhi_train, <span class="dv">5</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>dbhi_5_fold</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>#  5-fold cross-validation 
 # A tibble: 5 × 2
@@ -435,21 +398,21 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 <p>We will consider two kinds of models: classification tree and random forest. We will …</p>
 <p>Get a recipe. Then, standardize the numeric variables since their scales are pretty different. Finally, create dummy variables for the predictors since they need to be numeric (again).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">#bystanders &lt;- colnames(dbhi_data)[c(2:4,7:18,21)]</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co">#bystanders</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co">#dbhi_train</span></span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Diabetes_binary ~ Age + BMI + Income + Sex + Smoker</span></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co">#ORIGINALS:  update_role(HighBP,HighChol,CholCheck,Stroke,HeartDiseaseorAttack,PhysActivity,Fruits,Veggies,HvyAlcoholConsump,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") </span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>dbhi_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(Diabetes_binary <span class="sc">~</span> ., <span class="at">data =</span> dbhi_train) <span class="sc">|&gt;</span></span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">update_role</span>(Age,Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,<span class="at">new_role =</span> <span class="st">"bystander"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>(), <span class="sc">-</span><span class="fu">all_outcomes</span>()) <span class="co">#|&gt;</span></span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="co">#  summary()</span></span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a><span class="co">#  prep(training = dbhi_train) |&gt;</span></span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co">#  bake(dbhi_train)</span></span>
-<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>dbhi_recipe</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">#bystanders &lt;- colnames(dbhi_data)[c(2:4,7:18,21)]</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">#bystanders</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co">#dbhi_train</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Diabetes_binary ~ Age + Sex + NoDocbcCost + Stroke + HeartAttackorDisease + HvyAlcoholConsump</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>dbhi_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(Diabetes_binary <span class="sc">~</span> ., <span class="at">data =</span> dbhi_train) <span class="sc">|&gt;</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">update_role</span>(Income,Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,<span class="at">new_role =</span> <span class="st">"bystander"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_numeric</span>(), <span class="sc">-</span><span class="fu">all_outcomes</span>()) <span class="co">#|&gt;</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co">#  summary()</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co">#  prep(training = dbhi_train) |&gt;</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="co">#  bake(dbhi_train)</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>dbhi_recipe</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code></code></pre>
 </div>
@@ -467,8 +430,8 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>outcome:    1
-predictor:  5
-bystander: 16</code></pre>
+predictor:  6
+bystander: 15</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code></code></pre>
@@ -485,50 +448,58 @@ bystander: 16</code></pre>
 </div>
 <section id="classification-tree" class="level3">
 <h3 class="anchored" data-anchor-id="classification-tree">Classification Tree</h3>
-<p>You should provide a thorough explanation of what a classification tree model is. Then you should fit a classification tree with varying values for the complexity parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.</p>
+<p>A classification tree is a supervised learning, tree-based method with a goal of classifying (predicting) group membership. In tree-based methods, we attempt to split up the space of predictors into different regions. The tree typically chooses the most prevalent class in a region as the prediction. Then, over each region, we can make a different prediction. Note that adjacent regions need not have predictions close to each other.</p>
+<p>Classification trees have a categorical variable as a response. Once we’ve chosen our model form, we need to fit the model to the data. We split the data into a training set and a test set, then write the fitting process as the minimization of some loss function over the training data. Loss functions for classification trees include mean log loss (which we will use here), accuracy, area under the receiver operator characteristic curve (plot that illustrates performance of binary classifier model at different threshold values), and F1 score (related to precision and recall).</p>
+<p>We tune on certain hyperparameters: tree depth (number of splits), the minimum number of data points in a note required for the node to be split further, and cost-complexity. We create a workflow, then a tuning grid where we use cross-validation to select the tuning parameters (here we also introduce the loss function). The goal is to obtain the hyperparameter values that minimize the loss function. We finalize the workflow, then fit on the test set to see how our model performs.</p>
+<section id="procedure" class="level4">
+<h4 class="anchored" data-anchor-id="procedure">Procedure</h4>
 <p>First, tell <code>tidymodels</code> that we are performing a classification task:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>tree_mod <span class="ot">&lt;-</span> <span class="fu">decision_tree</span>(<span class="at">tree_depth =</span> <span class="fu">tune</span>(),</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">min_n =</span> <span class="dv">10</span>,</span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">cost_complexity =</span> <span class="fu">tune</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"rpart"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">#For API.R, use</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="co">#cost_complexity = 1e-10</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co">#tree_depth = 15 (was 11 using Income instead of Age)</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co">#min_n = 10</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>tree_mod <span class="ot">&lt;-</span> <span class="fu">decision_tree</span>(<span class="at">tree_depth =</span> <span class="fu">tune</span>(),</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>                          <span class="at">min_n =</span> <span class="dv">10</span>,</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">cost_complexity =</span> <span class="fu">tune</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"rpart"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Next, create a workflow to use in the fitting process:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>tree_wkf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(dbhi_recipe) <span class="sc">|&gt;</span></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(tree_mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>tree_wkf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(dbhi_recipe) <span class="sc">|&gt;</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(tree_mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Then, to create the tuning grid for fitting our models, we use cross validation (CV) to select the tuning parameters:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span> </span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(<span class="at">resamples =</span> dbhi_5_fold, <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss))</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>temp <span class="sc">|&gt;</span> </span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span> </span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(<span class="at">resamples =</span> dbhi_5_fold, <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss))</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>temp <span class="sc">|&gt;</span> </span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 10 × 8
    cost_complexity tree_depth .metric     .estimator  mean     n std_err .config
              &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;  
- 1        1.41e- 5          6 mn_log_loss binary     0.397     5 3.21e-3 Prepro…
+ 1        1.41e- 5          6 mn_log_loss binary     0.394     5 3.58e-3 Prepro…
  2        9.46e- 3          9 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
- 3        1.05e-10         11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
+ 3        1.05e-10         11 mn_log_loss binary     0.387     5 6.40e-4 Prepro…
  4        2.89e- 4          3 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
- 5        2.97e- 8         13 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
- 6        7.51e- 8          8 mn_log_loss binary     0.392     5 2.56e-3 Prepro…
- 7        5.06e- 5         14 mn_log_loss binary     0.399     5 2.28e-3 Prepro…
+ 5        2.97e- 8         13 mn_log_loss binary     0.387     5 6.58e-4 Prepro…
+ 6        7.51e- 8          8 mn_log_loss binary     0.391     5 3.08e-3 Prepro…
+ 7        5.06e- 5         14 mn_log_loss binary     0.392     5 2.81e-3 Prepro…
  8        2.87e- 9          4 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
  9        5.92e- 2          1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
-10        1.02e- 6         11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…</code></pre>
+10        1.02e- 6         11 mn_log_loss binary     0.387     5 6.40e-4 Prepro…</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>tree_grid <span class="ot">&lt;-</span> <span class="fu">grid_regular</span>(<span class="fu">cost_complexity</span>(),</span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>                          <span class="co">#min_n(),</span></span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">tree_depth</span>(),</span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>                          <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">5</span>))</span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>tree_grid</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>tree_grid <span class="ot">&lt;-</span> <span class="fu">grid_regular</span>(<span class="fu">cost_complexity</span>(),</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                          <span class="co">#min_n(),</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">tree_depth</span>(),</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>                          <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">5</span>))</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>tree_grid</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 25 × 2
    cost_complexity tree_depth
@@ -548,12 +519,12 @@ bystander: 16</code></pre>
 </div>
 <p>This generates 25 (5x5) candidate decision tree models.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span> </span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(<span class="at">resamples =</span> dbhi_5_fold,</span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss),</span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">grid =</span> tree_grid)</span>
-<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
-<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span> </span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(<span class="at">resamples =</span> dbhi_5_fold,</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss),</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">grid =</span> tree_grid)</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 25 × 8
    cost_complexity tree_depth .metric     .estimator  mean     n std_err .config
@@ -573,15 +544,15 @@ bystander: 16</code></pre>
 </div>
 <p>Combine the metrics across the folds, then plot:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tree_depth =</span> <span class="fu">factor</span>(tree_depth)) <span class="sc">|&gt;</span></span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(cost_complexity, mean, <span class="at">color =</span> tree_depth)) <span class="sc">+</span></span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> .metric, <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>()) <span class="sc">+</span></span>
-<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_d</span>(<span class="at">option =</span> <span class="st">"plasma"</span>, <span class="at">begin =</span> .<span class="dv">9</span>, <span class="at">end =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">tree_depth =</span> <span class="fu">factor</span>(tree_depth)) <span class="sc">|&gt;</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(cost_complexity, mean, <span class="at">color =</span> tree_depth)) <span class="sc">+</span></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="fl">1.5</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> .metric, <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">label_number</span>()) <span class="sc">+</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_d</span>(<span class="at">option =</span> <span class="st">"plasma"</span>, <span class="at">begin =</span> .<span class="dv">9</span>, <span class="at">end =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
 ℹ Please use `linewidth` instead.</code></pre>
@@ -589,11 +560,11 @@ bystander: 16</code></pre>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Modeling_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Modeling_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>tree_fits</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>tree_fits</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># Tuning results
 # 5-fold cross-validation 
@@ -610,48 +581,48 @@ bystander: 16</code></pre>
 <p>Our best model has a tree_depth of 15 (this minimizes the mean log loss).</p>
 <p>Arrange by the mean log loss:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>tree_fits <span class="sc">|&gt;</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 25 × 8
    cost_complexity tree_depth .metric     .estimator  mean     n std_err .config
              &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;  
- 1    0.0000000001         11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
- 2    0.0000000178         11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
- 3    0.00000316           11 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
- 4    0.0000000001         15 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
- 5    0.0000000178         15 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
- 6    0.00000316           15 mn_log_loss binary     0.389     5 4.51e-4 Prepro…
- 7    0.0000000001          8 mn_log_loss binary     0.392     5 2.56e-3 Prepro…
- 8    0.0000000178          8 mn_log_loss binary     0.392     5 2.56e-3 Prepro…
- 9    0.00000316            8 mn_log_loss binary     0.392     5 2.56e-3 Prepro…
+ 1    0.0000000001         15 mn_log_loss binary     0.387     5 6.48e-4 Prepro…
+ 2    0.0000000178         15 mn_log_loss binary     0.387     5 6.48e-4 Prepro…
+ 3    0.00000316           15 mn_log_loss binary     0.387     5 6.48e-4 Prepro…
+ 4    0.0000000001         11 mn_log_loss binary     0.387     5 6.40e-4 Prepro…
+ 5    0.0000000178         11 mn_log_loss binary     0.387     5 6.40e-4 Prepro…
+ 6    0.00000316           11 mn_log_loss binary     0.387     5 6.40e-4 Prepro…
+ 7    0.0000000001          8 mn_log_loss binary     0.391     5 3.08e-3 Prepro…
+ 8    0.0000000178          8 mn_log_loss binary     0.391     5 3.08e-3 Prepro…
+ 9    0.00000316            8 mn_log_loss binary     0.391     5 3.08e-3 Prepro…
 10    0.0000000001          1 mn_log_loss binary     0.402     5 7.11e-4 Prepro…
 # ℹ 15 more rows</code></pre>
 </div>
 </div>
 <p>Grab the best model’s tuning parameter values:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>tree_best_params <span class="ot">&lt;-</span> <span class="fu">select_best</span>(tree_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>tree_best_params <span class="ot">&lt;-</span> <span class="fu">select_best</span>(tree_fits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning in select_best(tree_fits): No value of `metric` was given;
 "mn_log_loss" will be used.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>tree_best_params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>tree_best_params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 3
   cost_complexity tree_depth .config              
             &lt;dbl&gt;      &lt;int&gt; &lt;chr&gt;                
-1    0.0000000001         11 Preprocessor1_Model16</code></pre>
+1    0.0000000001         15 Preprocessor1_Model21</code></pre>
 </div>
 </div>
 <p>These are the values for <code>tree_depth</code> and <code>cost_complexity</code> that minimize mean log loss in the dbhi data set.</p>
 <p>Fit this chosen model by <code>finalize_workflow()</code> to finalize the model on the training set:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>tree_final_wkf <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span></span>
-<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(tree_best_params)</span>
-<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>tree_final_wkf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>tree_final_wkf <span class="ot">&lt;-</span> tree_wkf <span class="sc">|&gt;</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(tree_best_params)</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>tree_final_wkf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>══ Workflow ════════════════════════════════════════════════════════════════════
 Preprocessor: Recipe
@@ -668,7 +639,7 @@ Decision Tree Model Specification (classification)
 
 Main Arguments:
   cost_complexity = 1e-10
-  tree_depth = 11
+  tree_depth = 15
   min_n = 10
 
 Computational engine: rpart </code></pre>
@@ -676,9 +647,9 @@ Computational engine: rpart </code></pre>
 </div>
 <p>Perform <code>last_fit()</code> on the <code>dbhi_split</code> object:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>tree_final_fit <span class="ot">&lt;-</span> tree_final_wkf <span class="sc">|&gt;</span></span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">last_fit</span>(dbhi_split, <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss))</span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>tree_final_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>tree_final_fit <span class="ot">&lt;-</span> tree_final_wkf <span class="sc">|&gt;</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">last_fit</span>(dbhi_split, <span class="at">metrics=</span><span class="fu">metric_set</span>(mn_log_loss))</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>tree_final_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># Resampling results
 # Manual resampling 
@@ -691,32 +662,35 @@ Computational engine: rpart </code></pre>
 <p>This has information about how the final fitted model - which was fit on the entire training data set - performs on the test set.</p>
 <p>Look at the metric with <code>collect_metrics()</code>:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>tree_final_fit <span class="sc">|&gt;</span></span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>tree_final_fit <span class="sc">|&gt;</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 4
   .metric     .estimator .estimate .config             
   &lt;chr&gt;       &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;               
-1 mn_log_loss binary         0.396 Preprocessor1_Model1</code></pre>
+1 mn_log_loss binary         0.393 Preprocessor1_Model1</code></pre>
 </div>
 </div>
 <p>Plot to learn about the fit:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Extract the workflow to better understand the structure of the plot!</span></span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>tree_final_model <span class="ot">&lt;-</span> <span class="fu">extract_workflow</span>(tree_final_fit)</span>
-<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Plot!</span></span>
-<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>tree_final_model <span class="ot">&lt;-</span> tree_final_model <span class="sc">|&gt;</span></span>
-<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extract_fit_engine</span>() <span class="sc">|&gt;</span></span>
-<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>  rpart.plot<span class="sc">::</span><span class="fu">rpart.plot</span>(<span class="at">roundint =</span> <span class="cn">FALSE</span>,<span class="at">extra=</span><span class="dv">101</span>,<span class="at">digits=</span><span class="sc">-</span><span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Extract the workflow to better understand the structure of the plot!</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>tree_final_model <span class="ot">&lt;-</span> <span class="fu">extract_workflow</span>(tree_final_fit)</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Plot!</span></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>tree_final_model <span class="ot">&lt;-</span> tree_final_model <span class="sc">|&gt;</span></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extract_fit_engine</span>() <span class="sc">|&gt;</span></span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>  rpart.plot<span class="sc">::</span><span class="fu">rpart.plot</span>(<span class="at">roundint =</span> <span class="cn">FALSE</span>,<span class="at">extra=</span><span class="dv">101</span>,<span class="at">digits=</span><span class="sc">-</span><span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: labs do not fit even at cex 0.15, there may be some overplotting</code></pre>
+</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Modeling_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Modeling_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>tree_final_model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>tree_final_model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$obj
 n= 177575 
@@ -724,23 +698,83 @@ n= 177575
 node), split, n, loss, yval, (yprob)
       * denotes terminal node
 
-  1) root 177575 24553 no diabetes (0.8617317 0.1382683)  
-    2) HeartDiseaseorAttack_yes&lt; 1.386034 160791 19073 no diabetes (0.8813802 0.1186198) *
-    3) HeartDiseaseorAttack_yes&gt;=1.386034 16784  5480 no diabetes (0.6734986 0.3265014)  
-      6) Stroke_yes&lt; 2.322867 13995  4337 no diabetes (0.6901036 0.3098964) *
-      7) Stroke_yes&gt;=2.322867 2789  1143 no diabetes (0.5901757 0.4098243)  
-       14) HvyAlcoholConsump_yes&gt;=1.923615 83    16 no diabetes (0.8072289 0.1927711)  
-         28) Income_X.50.000.to.less.than..75.000&gt;=0.8810366 5     0 no diabetes (1.0000000 0.0000000) *
-         29) Income_X.50.000.to.less.than..75.000&lt; 0.8810366 78    16 no diabetes (0.7948718 0.2051282)  
-           58) Income_X.75.000.or.more&gt;=0.2976892 16     2 no diabetes (0.8750000 0.1250000) *
-           59) Income_X.75.000.or.more&lt; 0.2976892 62    14 no diabetes (0.7741935 0.2258065)  
-            118) Income_X.25.000.to.less.than..35.000&gt;=1.316765 9     1 no diabetes (0.8888889 0.1111111) *
-            119) Income_X.25.000.to.less.than..35.000&lt; 1.316765 53    13 no diabetes (0.7547170 0.2452830)  
-              238) Sex_male&gt;=0.120171 29     6 no diabetes (0.7931034 0.2068966) *
-              239) Sex_male&lt; 0.120171 24     7 no diabetes (0.7083333 0.2916667)  
-                478) Income_X.35.000.to.less.than..50.000&lt; 1.010926 17     3 no diabetes (0.8235294 0.1764706) *
-                479) Income_X.35.000.to.less.than..50.000&gt;=1.010926 7     3 prediabetes or diabetes (0.4285714 0.5714286) *
-       15) HvyAlcoholConsump_yes&lt; 1.923615 2706  1127 no diabetes (0.5835181 0.4164819) *
+    1) root 177575 24553 no diabetes (0.86173166 0.13826834)  
+      2) HeartDiseaseorAttack_yes&lt; 1.386034 160791 19073 no diabetes (0.88138018 0.11861982)  
+        4) Stroke_yes&lt; 2.322867 156344 17926 no diabetes (0.88534258 0.11465742) *
+        5) Stroke_yes&gt;=2.322867 4447  1147 no diabetes (0.74207331 0.25792669)  
+         10) HvyAlcoholConsump_yes&gt;=1.923615 189    17 no diabetes (0.91005291 0.08994709) *
+         11) HvyAlcoholConsump_yes&lt; 1.923615 4258  1130 no diabetes (0.73461719 0.26538281)  
+           22) Age_X65.to.69&lt; 1.122195 3613   915 no diabetes (0.74674785 0.25325215)  
+             44) Age_X60.to.64&lt; 1.097894 3030   721 no diabetes (0.76204620 0.23795380)  
+               88) Age_X35.to.39&gt;=1.951873 71     7 no diabetes (0.90140845 0.09859155) *
+               89) Age_X35.to.39&lt; 1.951873 2959   714 no diabetes (0.75870226 0.24129774)  
+                178) Age_X80.or.older&gt;=1.722133 646   128 no diabetes (0.80185759 0.19814241) *
+                179) Age_X80.or.older&lt; 1.722133 2313   586 no diabetes (0.74664937 0.25335063)  
+                  358) Age_X40.to.44&gt;=1.783672 126    18 no diabetes (0.85714286 0.14285714) *
+                  359) Age_X40.to.44&lt; 1.783672 2187   568 no diabetes (0.74028349 0.25971651)  
+                    718) Age_X30.to.34&gt;=2.240538 39     3 no diabetes (0.92307692 0.07692308) *
+                    719) Age_X30.to.34&lt; 2.240538 2148   565 no diabetes (0.73696462 0.26303538)  
+                     1438) Age_X55.to.59&lt; 1.15564 1669   428 no diabetes (0.74355902 0.25644098)  
+                       2876) Age_X50.to.54&lt; 1.29714 1352   338 no diabetes (0.75000000 0.25000000)  
+                         5752) Age_X70.to.74&lt; 1.404896 729   173 no diabetes (0.76268861 0.23731139) *
+                         5753) Age_X70.to.74&gt;=1.404896 623   165 no diabetes (0.73515249 0.26484751)  
+                          11506) NoDocbcCost_yes&lt; 1.500513 600   156 no diabetes (0.74000000 0.26000000) *
+                          11507) NoDocbcCost_yes&gt;=1.500513 23     9 no diabetes (0.60869565 0.39130435)  
+                            23014) Sex_male&lt; 0.120171 16     5 no diabetes (0.68750000 0.31250000) *
+                            23015) Sex_male&gt;=0.120171 7     3 prediabetes or diabetes (0.42857143 0.57142857) *
+                       2877) Age_X50.to.54&gt;=1.29714 317    90 no diabetes (0.71608833 0.28391167) *
+                     1439) Age_X55.to.59&gt;=1.15564 479   137 no diabetes (0.71398747 0.28601253) *
+             45) Age_X60.to.64&gt;=1.097894 583   194 no diabetes (0.66723842 0.33276158) *
+           23) Age_X65.to.69&gt;=1.122195 645   215 no diabetes (0.66666667 0.33333333)  
+             46) Sex_male&lt; 0.120171 348   108 no diabetes (0.68965517 0.31034483) *
+             47) Sex_male&gt;=0.120171 297   107 no diabetes (0.63973064 0.36026936)  
+               94) NoDocbcCost_yes&lt; 1.500513 279    97 no diabetes (0.65232975 0.34767025) *
+               95) NoDocbcCost_yes&gt;=1.500513 18     8 prediabetes or diabetes (0.44444444 0.55555556) *
+      3) HeartDiseaseorAttack_yes&gt;=1.386034 16784  5480 no diabetes (0.67349857 0.32650143)  
+        6) Stroke_yes&lt; 2.322867 13995  4337 no diabetes (0.69010361 0.30989639) *
+        7) Stroke_yes&gt;=2.322867 2789  1143 no diabetes (0.59017569 0.40982431)  
+         14) Age_X80.or.older&gt;=1.722133 548   165 no diabetes (0.69890511 0.30109489) *
+         15) Age_X80.or.older&lt; 1.722133 2241   978 no diabetes (0.56358768 0.43641232)  
+           30) HvyAlcoholConsump_yes&gt;=1.923615 67    15 no diabetes (0.77611940 0.22388060) *
+           31) HvyAlcoholConsump_yes&lt; 1.923615 2174   963 no diabetes (0.55703772 0.44296228)  
+             62) Age_X30.to.34&gt;=2.240538 16     3 no diabetes (0.81250000 0.18750000) *
+             63) Age_X30.to.34&lt; 2.240538 2158   960 no diabetes (0.55514365 0.44485635)  
+              126) NoDocbcCost_yes&gt;=1.500513 403   165 no diabetes (0.59057072 0.40942928)  
+                252) Age_X75.to.79&lt; 1.790442 379   150 no diabetes (0.60422164 0.39577836)  
+                  504) Age_X70.to.74&lt; 1.404896 332   126 no diabetes (0.62048193 0.37951807)  
+                   1008) Age_X50.to.54&gt;=1.29714 51    15 no diabetes (0.70588235 0.29411765) *
+                   1009) Age_X50.to.54&lt; 1.29714 281   111 no diabetes (0.60498221 0.39501779)  
+                     2018) Age_X45.to.49&lt; 1.57069 249    96 no diabetes (0.61445783 0.38554217) *
+                     2019) Age_X45.to.49&gt;=1.57069 32    15 no diabetes (0.53125000 0.46875000)  
+                       4038) Sex_male&lt; 0.120171 19     8 no diabetes (0.57894737 0.42105263) *
+                       4039) Sex_male&gt;=0.120171 13     6 prediabetes or diabetes (0.46153846 0.53846154) *
+                  505) Age_X70.to.74&gt;=1.404896 47    23 prediabetes or diabetes (0.48936170 0.51063830)  
+                   1010) Sex_male&gt;=0.120171 15     7 no diabetes (0.53333333 0.46666667) *
+                   1011) Sex_male&lt; 0.120171 32    15 prediabetes or diabetes (0.46875000 0.53125000) *
+                253) Age_X75.to.79&gt;=1.790442 24     9 prediabetes or diabetes (0.37500000 0.62500000) *
+              127) NoDocbcCost_yes&lt; 1.500513 1755   795 no diabetes (0.54700855 0.45299145)  
+                254) Age_X60.to.64&lt; 1.097894 1475   652 no diabetes (0.55796610 0.44203390)  
+                  508) Age_X45.to.49&gt;=1.57069 50    16 no diabetes (0.68000000 0.32000000) *
+                  509) Age_X45.to.49&lt; 1.57069 1425   636 no diabetes (0.55368421 0.44631579)  
+                   1018) Age_X75.to.79&gt;=1.790442 325   135 no diabetes (0.58461538 0.41538462) *
+                   1019) Age_X75.to.79&lt; 1.790442 1100   501 no diabetes (0.54454545 0.45545455)  
+                     2038) Age_X35.to.39&gt;=1.951873 16     5 no diabetes (0.68750000 0.31250000) *
+                     2039) Age_X35.to.39&lt; 1.951873 1084   496 no diabetes (0.54243542 0.45756458)  
+                       4078) Age_X40.to.44&gt;=1.783672 12     4 no diabetes (0.66666667 0.33333333) *
+                       4079) Age_X40.to.44&lt; 1.783672 1072   492 no diabetes (0.54104478 0.45895522)  
+                         8158) Age_X65.to.69&lt; 1.122195 698   316 no diabetes (0.54727794 0.45272206)  
+                          16316) Age_X70.to.74&lt; 1.404896 296   131 no diabetes (0.55743243 0.44256757)  
+                            32632) Sex_male&lt; 0.120171 148    57 no diabetes (0.61486486 0.38513514) *
+                            32633) Sex_male&gt;=0.120171 148    74 no diabetes (0.50000000 0.50000000)  
+                              65266) Age_X50.to.54&gt;=1.29714 62    28 no diabetes (0.54838710 0.45161290) *
+                              65267) Age_X50.to.54&lt; 1.29714 86    40 prediabetes or diabetes (0.46511628 0.53488372) *
+                          16317) Age_X70.to.74&gt;=1.404896 402   185 no diabetes (0.53980100 0.46019900)  
+                            32634) Sex_male&gt;=0.120171 230    97 no diabetes (0.57826087 0.42173913) *
+                            32635) Sex_male&lt; 0.120171 172    84 prediabetes or diabetes (0.48837209 0.51162791) *
+                         8159) Age_X65.to.69&gt;=1.122195 374   176 no diabetes (0.52941176 0.47058824) *
+                255) Age_X60.to.64&gt;=1.097894 280   137 prediabetes or diabetes (0.48928571 0.51071429)  
+                  510) Sex_male&gt;=0.120171 166    82 no diabetes (0.50602410 0.49397590) *
+                  511) Sex_male&lt; 0.120171 114    53 prediabetes or diabetes (0.46491228 0.53508772) *
 
 $snipped.nodes
 NULL
@@ -752,191 +786,483 @@ $ylim
 [1] 0 1
 
 $x
- [1] 0.23100161 0.04472613 0.41727710 0.15963341 0.67492078 0.38585713
- [7] 0.27454070 0.49717357 0.38944799 0.60489915 0.50435527 0.70544303
-[13] 0.61926256 0.79162349 0.73416985 0.84907714 0.96398442
+ [1] 0.27334401 0.08904134 0.01518334 0.16289934 0.04050431 0.28529436
+ [7] 0.20724195 0.09544885 0.06582529 0.12507242 0.09114627 0.15899857
+[13] 0.11646724 0.20152990 0.14178822 0.26127158 0.22882907 0.18926505
+[19] 0.16710920 0.21142090 0.19243017 0.23041164 0.21775115 0.24307212
+[25] 0.26839310 0.29371408 0.31903505 0.36334676 0.34435603 0.38233749
+[31] 0.36967701 0.39499798 0.45764669 0.42031896 0.49497442 0.44563994
+[37] 0.54430891 0.47096091 0.61765690 0.49628189 0.73903191 0.63159086
+[43] 0.58965299 0.54375872 0.52160286 0.56591457 0.54692384 0.58490531
+[49] 0.57224482 0.59756579 0.63554726 0.62288677 0.64820775 0.67352872
+[55] 0.84647297 0.72822599 0.69884970 0.75760228 0.72417068 0.79103388
+[61] 0.74949165 0.83257611 0.77481263 0.89033958 0.85394068 0.81912434
+[67] 0.80013360 0.83811507 0.82545458 0.85077556 0.88875702 0.87609653
+[73] 0.90141751 0.92673849 0.96471995 0.95205946 0.97738044
 
 $y
- [1] 0.95861553 0.02628681 0.85266909 0.02628681 0.74672264 0.64077620
- [7] 0.02628681 0.53482975 0.02628681 0.42888330 0.02628681 0.32293686
-[13] 0.02628681 0.21699041 0.02628681 0.02628681 0.02628681
+ [1] 0.986589416 0.883597953 0.008518208 0.873675901 0.055052913 0.817219143
+ [7] 0.714227680 0.657770922 0.008518208 0.647848870 0.055052913 0.591392112
+[13] 0.008518208 0.534935354 0.055052913 0.478478597 0.375487133 0.319030375
+[19] 0.008518208 0.309108323 0.055052913 0.252651566 0.008518208 0.055052913
+[25] 0.008518208 0.055052913 0.008518208 0.760762385 0.055052913 0.704305628
+[31] 0.008518208 0.055052913 0.930132659 0.008518208 0.873675901 0.055052913
+[37] 0.817219143 0.008518208 0.760762385 0.055052913 0.704305628 0.601314164
+[43] 0.544857406 0.488400648 0.008518208 0.478478597 0.055052913 0.422021839
+[49] 0.008518208 0.055052913 0.534935354 0.008518208 0.055052913 0.008518208
+[55] 0.647848870 0.544857406 0.055052913 0.534935354 0.008518208 0.478478597
+[61] 0.055052913 0.422021839 0.008518208 0.365565081 0.262573617 0.206116860
+[67] 0.055052913 0.196194808 0.008518208 0.055052913 0.252651566 0.008518208
+[73] 0.055052913 0.008518208 0.591392112 0.055052913 0.008518208
 
 $branch.x
-       [,1]       [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-x 0.2310016 0.04472613 0.4172771 0.1596334 0.6749208 0.3858571 0.2745407
-         NA 0.04472613 0.4172771 0.1596334 0.6749208 0.3858571 0.2745407
-         NA 0.23100161 0.2310016 0.4172771 0.4172771 0.6749208 0.3858571
-       [,8]      [,9]     [,10]     [,11]     [,12]     [,13]     [,14]
-x 0.4971736 0.3894480 0.6048992 0.5043553 0.7054430 0.6192626 0.7916235
-  0.4971736 0.3894480 0.6048992 0.5043553 0.7054430 0.6192626 0.7916235
-  0.3858571 0.4971736 0.4971736 0.6048992 0.6048992 0.7054430 0.7054430
-      [,15]     [,16]     [,17]
-x 0.7341698 0.8490771 0.9639844
-  0.7341698 0.8490771 0.9639844
-  0.7916235 0.7916235 0.6749208
+      [,1]       [,2]       [,3]       [,4]       [,5]      [,6]      [,7]
+x 0.273344 0.08904134 0.01518334 0.16289934 0.04050431 0.2852944 0.2072420
+        NA 0.08904134 0.01518334 0.16289934 0.04050431 0.2852944 0.2072420
+        NA 0.27334401 0.08904134 0.08904134 0.16289934 0.1628993 0.2852944
+        [,8]       [,9]      [,10]      [,11]     [,12]     [,13]     [,14]
+x 0.09544885 0.06582529 0.12507242 0.09114627 0.1589986 0.1164672 0.2015299
+  0.09544885 0.06582529 0.12507242 0.09114627 0.1589986 0.1164672 0.2015299
+  0.20724195 0.09544885 0.09544885 0.12507242 0.1250724 0.1589986 0.1589986
+      [,15]     [,16]     [,17]     [,18]     [,19]     [,20]     [,21]
+x 0.1417882 0.2612716 0.2288291 0.1892650 0.1671092 0.2114209 0.1924302
+  0.1417882 0.2612716 0.2288291 0.1892650 0.1671092 0.2114209 0.1924302
+  0.2015299 0.2015299 0.2612716 0.2288291 0.1892650 0.1892650 0.2114209
+      [,22]     [,23]     [,24]     [,25]     [,26]     [,27]     [,28]
+x 0.2304116 0.2177511 0.2430721 0.2683931 0.2937141 0.3190351 0.3633468
+  0.2304116 0.2177511 0.2430721 0.2683931 0.2937141 0.3190351 0.3633468
+  0.2114209 0.2304116 0.2304116 0.2288291 0.2612716 0.2072420 0.2852944
+      [,29]     [,30]     [,31]     [,32]     [,33]     [,34]     [,35]
+x 0.3443560 0.3823375 0.3696770 0.3949980 0.4576467 0.4203190 0.4949744
+  0.3443560 0.3823375 0.3696770 0.3949980 0.4576467 0.4203190 0.4949744
+  0.3633468 0.3633468 0.3823375 0.3823375 0.2733440 0.4576467 0.4576467
+      [,36]     [,37]     [,38]     [,39]     [,40]     [,41]     [,42]
+x 0.4456399 0.5443089 0.4709609 0.6176569 0.4962819 0.7390319 0.6315909
+  0.4456399 0.5443089 0.4709609 0.6176569 0.4962819 0.7390319 0.6315909
+  0.4949744 0.4949744 0.5443089 0.5443089 0.6176569 0.6176569 0.7390319
+      [,43]     [,44]     [,45]     [,46]     [,47]     [,48]     [,49]
+x 0.5896530 0.5437587 0.5216029 0.5659146 0.5469238 0.5849053 0.5722448
+  0.5896530 0.5437587 0.5216029 0.5659146 0.5469238 0.5849053 0.5722448
+  0.6315909 0.5896530 0.5437587 0.5437587 0.5659146 0.5659146 0.5849053
+      [,50]     [,51]     [,52]     [,53]     [,54]     [,55]    [,56]
+x 0.5975658 0.6355473 0.6228868 0.6482077 0.6735287 0.8464730 0.728226
+  0.5975658 0.6355473 0.6228868 0.6482077 0.6735287 0.8464730 0.728226
+  0.5849053 0.5896530 0.6355473 0.6355473 0.6315909 0.7390319 0.846473
+      [,57]     [,58]     [,59]     [,60]     [,61]     [,62]     [,63]
+x 0.6988497 0.7576023 0.7241707 0.7910339 0.7494917 0.8325761 0.7748126
+  0.6988497 0.7576023 0.7241707 0.7910339 0.7494917 0.8325761 0.7748126
+  0.7282260 0.7282260 0.7576023 0.7576023 0.7910339 0.7910339 0.8325761
+      [,64]     [,65]     [,66]     [,67]     [,68]     [,69]     [,70]
+x 0.8903396 0.8539407 0.8191243 0.8001336 0.8381151 0.8254546 0.8507756
+  0.8903396 0.8539407 0.8191243 0.8001336 0.8381151 0.8254546 0.8507756
+  0.8325761 0.8903396 0.8539407 0.8191243 0.8191243 0.8381151 0.8381151
+      [,71]     [,72]     [,73]     [,74]    [,75]     [,76]     [,77]
+x 0.8887570 0.8760965 0.9014175 0.9267385 0.964720 0.9520595 0.9773804
+  0.8887570 0.8760965 0.9014175 0.9267385 0.964720 0.9520595 0.9773804
+  0.8539407 0.8887570 0.8887570 0.8903396 0.846473 0.9647200 0.9647200
 
 $branch.y
-       [,1]       [,2]      [,3]       [,4]      [,5]      [,6]       [,7]
-y 0.9997651 0.06743639 0.8938187 0.06743639 0.7878722 0.6819258 0.06743639
-         NA 0.91327376 0.9132738 0.80732732 0.8073273 0.7013809 0.59543442
-         NA 0.91327376 0.9132738 0.80732732 0.8073273 0.7013809 0.59543442
+       [,1]      [,2]       [,3]      [,4]       [,5]      [,6]      [,7]
+y 0.9999352 0.8969438 0.02186402 0.8688925 0.06839872 0.8305650 0.7275735
+         NA 0.9718840 0.86889251 0.8688925 0.85897046 0.8589705 0.8025137
+         NA 0.9718840 0.86889251 0.8688925 0.85897046 0.8589705 0.8025137
        [,8]       [,9]     [,10]      [,11]     [,12]      [,13]     [,14]
-y 0.5759793 0.06743639 0.4700329 0.06743639 0.3640864 0.06743639 0.2581400
-  0.5954344 0.48948798 0.4894880 0.38354153 0.3835415 0.27759509 0.2775951
-  0.5954344 0.48948798 0.4894880 0.38354153 0.3835415 0.27759509 0.2775951
-       [,15]      [,16]      [,17]
-y 0.06743639 0.06743639 0.06743639
-  0.17164864 0.17164864 0.70138087
-  0.17164864 0.17164864 0.70138087
+y 0.6711167 0.02186402 0.6430655 0.06839872 0.6047379 0.02186402 0.5482812
+  0.6995222 0.64306548 0.6430655 0.63314343 0.6331434 0.57668667 0.5766867
+  0.6995222 0.64306548 0.6430655 0.63314343 0.6331434 0.57668667 0.5766867
+       [,15]     [,16]     [,17]     [,18]      [,19]     [,20]      [,21]
+y 0.06839872 0.4918244 0.3888329 0.3323762 0.02186402 0.3043249 0.06839872
+  0.52022992 0.5202299 0.4637732 0.3607817 0.30432494 0.3043249 0.29440288
+  0.52022992 0.5202299 0.4637732 0.3607817 0.30432494 0.3043249 0.29440288
+      [,22]      [,23]      [,24]      [,25]      [,26]      [,27]     [,28]
+y 0.2659974 0.02186402 0.06839872 0.02186402 0.06839872 0.02186402 0.7741082
+  0.2944029 0.23794613 0.23794613 0.36078169 0.46377316 0.69952224 0.8025137
+  0.2944029 0.23794613 0.23794613 0.36078169 0.46377316 0.69952224 0.8025137
+       [,29]     [,30]      [,31]      [,32]     [,33]      [,34]     [,35]
+y 0.06839872 0.7176514 0.02186402 0.06839872 0.9434785 0.02186402 0.8870217
+  0.74605695 0.7460569 0.68960019 0.68960019 0.9718840 0.91542722 0.9154272
+  0.74605695 0.7460569 0.68960019 0.68960019 0.9718840 0.91542722 0.9154272
+       [,36]     [,37]      [,38]     [,39]      [,40]     [,41]     [,42]
+y 0.06839872 0.8305650 0.02186402 0.7741082 0.06839872 0.7176514 0.6146600
+  0.85897046 0.8589705 0.80251370 0.8025137 0.74605695 0.7460569 0.6896002
+  0.85897046 0.8589705 0.80251370 0.8025137 0.74605695 0.7460569 0.6896002
+      [,43]     [,44]      [,45]     [,46]      [,47]     [,48]      [,49]
+y 0.5582032 0.5017465 0.02186402 0.4736952 0.06839872 0.4353676 0.02186402
+  0.5866087 0.5301520 0.47369521 0.4736952 0.46377316 0.4637732 0.40731640
+  0.5866087 0.5301520 0.47369521 0.4736952 0.46377316 0.4637732 0.40731640
+       [,50]    [,51]      [,52]      [,53]      [,54]     [,55]     [,56]
+y 0.06839872 0.530152 0.02186402 0.06839872 0.02186402 0.6611947 0.5582032
+  0.40731640 0.530152 0.52022992 0.52022992 0.58660873 0.6896002 0.6331434
+  0.40731640 0.530152 0.52022992 0.52022992 0.58660873 0.6896002 0.6331434
+       [,57]    [,58]      [,59]     [,60]      [,61]     [,62]      [,63]
+y 0.06839872 0.530152 0.02186402 0.4918244 0.06839872 0.4353676 0.02186402
+  0.53015197 0.530152 0.52022992 0.5202299 0.46377316 0.4637732 0.40731640
+  0.53015197 0.530152 0.52022992 0.5202299 0.46377316 0.4637732 0.40731640
+      [,64]     [,65]     [,66]      [,67]     [,68]      [,69]      [,70]
+y 0.3789109 0.2759194 0.2194627 0.06839872 0.1914114 0.02186402 0.06839872
+  0.4073164 0.3508596 0.2478682 0.19141142 0.1914114 0.18148937 0.18148937
+  0.4073164 0.3508596 0.2478682 0.19141142 0.1914114 0.18148937 0.18148937
+      [,71]      [,72]      [,73]      [,74]     [,75]      [,76]      [,77]
+y 0.2478682 0.02186402 0.06839872 0.02186402 0.6047379 0.06839872 0.02186402
+  0.2478682 0.23794613 0.23794613 0.35085964 0.6331434 0.57668667 0.57668667
+  0.2478682 0.23794613 0.23794613 0.35085964 0.6331434 0.57668667 0.57668667
 
 $labs
- [1] "no diabetes\n153022  24553\n100.0000%" 
- [2] "no diabetes\n141718  19073\n90.5482%"  
- [3] "no diabetes\n11304  5480\n9.4518%"     
- [4] "no diabetes\n9658  4337\n7.8812%"      
- [5] "no diabetes\n1646  1143\n1.5706%"      
- [6] "no diabetes\n67  16\n0.0467%"          
- [7] "no diabetes\n5  0\n0.0028%"            
- [8] "no diabetes\n62  16\n0.0439%"          
- [9] "no diabetes\n14  2\n0.0090%"           
-[10] "no diabetes\n48  14\n0.0349%"          
-[11] "no diabetes\n8  1\n0.0051%"            
-[12] "no diabetes\n40  13\n0.0298%"          
-[13] "no diabetes\n23  6\n0.0163%"           
-[14] "no diabetes\n17  7\n0.0135%"           
-[15] "no diabetes\n14  3\n0.0096%"           
-[16] "prediabetes or diabetes\n3  4\n0.0039%"
-[17] "no diabetes\n1579  1127\n1.5239%"      
+ [1] "no diabetes\n153022  24553\n100.0000%"     
+ [2] "no diabetes\n141718  19073\n90.5482%"      
+ [3] "no diabetes\n138418  17926\n88.0439%"      
+ [4] "no diabetes\n3300  1147\n2.5043%"          
+ [5] "no diabetes\n172  17\n0.1064%"             
+ [6] "no diabetes\n3128  1130\n2.3979%"          
+ [7] "no diabetes\n2698  915\n2.0346%"           
+ [8] "no diabetes\n2309  721\n1.7063%"           
+ [9] "no diabetes\n64  7\n0.0400%"               
+[10] "no diabetes\n2245  714\n1.6663%"           
+[11] "no diabetes\n518  128\n0.3638%"            
+[12] "no diabetes\n1727  586\n1.3025%"           
+[13] "no diabetes\n108  18\n0.0710%"             
+[14] "no diabetes\n1619  568\n1.2316%"           
+[15] "no diabetes\n36  3\n0.0220%"               
+[16] "no diabetes\n1583  565\n1.2096%"           
+[17] "no diabetes\n1241  428\n0.9399%"           
+[18] "no diabetes\n1014  338\n0.7614%"           
+[19] "no diabetes\n556  173\n0.4105%"            
+[20] "no diabetes\n458  165\n0.3508%"            
+[21] "no diabetes\n444  156\n0.3379%"            
+[22] "no diabetes\n14  9\n0.0130%"               
+[23] "no diabetes\n11  5\n0.0090%"               
+[24] "prediabetes or diabetes\n3  4\n0.0039%"    
+[25] "no diabetes\n227  90\n0.1785%"             
+[26] "no diabetes\n342  137\n0.2697%"            
+[27] "no diabetes\n389  194\n0.3283%"            
+[28] "no diabetes\n430  215\n0.3632%"            
+[29] "no diabetes\n240  108\n0.1960%"            
+[30] "no diabetes\n190  107\n0.1673%"            
+[31] "no diabetes\n182  97\n0.1571%"             
+[32] "prediabetes or diabetes\n8  10\n0.0101%"   
+[33] "no diabetes\n11304  5480\n9.4518%"         
+[34] "no diabetes\n9658  4337\n7.8812%"          
+[35] "no diabetes\n1646  1143\n1.5706%"          
+[36] "no diabetes\n383  165\n0.3086%"            
+[37] "no diabetes\n1263  978\n1.2620%"           
+[38] "no diabetes\n52  15\n0.0377%"              
+[39] "no diabetes\n1211  963\n1.2243%"           
+[40] "no diabetes\n13  3\n0.0090%"               
+[41] "no diabetes\n1198  960\n1.2153%"           
+[42] "no diabetes\n238  165\n0.2269%"            
+[43] "no diabetes\n229  150\n0.2134%"            
+[44] "no diabetes\n206  126\n0.1870%"            
+[45] "no diabetes\n36  15\n0.0287%"              
+[46] "no diabetes\n170  111\n0.1582%"            
+[47] "no diabetes\n153  96\n0.1402%"             
+[48] "no diabetes\n17  15\n0.0180%"              
+[49] "no diabetes\n11  8\n0.0107%"               
+[50] "prediabetes or diabetes\n6  7\n0.0073%"    
+[51] "prediabetes or diabetes\n23  24\n0.0265%"  
+[52] "no diabetes\n8  7\n0.0084%"                
+[53] "prediabetes or diabetes\n15  17\n0.0180%"  
+[54] "prediabetes or diabetes\n9  15\n0.0135%"   
+[55] "no diabetes\n960  795\n0.9883%"            
+[56] "no diabetes\n823  652\n0.8306%"            
+[57] "no diabetes\n34  16\n0.0282%"              
+[58] "no diabetes\n789  636\n0.8025%"            
+[59] "no diabetes\n190  135\n0.1830%"            
+[60] "no diabetes\n599  501\n0.6195%"            
+[61] "no diabetes\n11  5\n0.0090%"               
+[62] "no diabetes\n588  496\n0.6104%"            
+[63] "no diabetes\n8  4\n0.0068%"                
+[64] "no diabetes\n580  492\n0.6037%"            
+[65] "no diabetes\n382  316\n0.3931%"            
+[66] "no diabetes\n165  131\n0.1667%"            
+[67] "no diabetes\n91  57\n0.0833%"              
+[68] "no diabetes\n74  74\n0.0833%"              
+[69] "no diabetes\n34  28\n0.0349%"              
+[70] "prediabetes or diabetes\n40  46\n0.0484%"  
+[71] "no diabetes\n217  185\n0.2264%"            
+[72] "no diabetes\n133  97\n0.1295%"             
+[73] "prediabetes or diabetes\n84  88\n0.0969%"  
+[74] "no diabetes\n198  176\n0.2106%"            
+[75] "prediabetes or diabetes\n137  143\n0.1577%"
+[76] "no diabetes\n84  82\n0.0935%"              
+[77] "prediabetes or diabetes\n53  61\n0.0642%"  
 
 $cex
-[1] 0.4625
+[1] 0.15
 
 $boxes
 $boxes$x1
- [1]  0.183660439 -0.002615046  0.376951032  0.121767869  0.637055236
- [6]  0.347991591  0.236675157  0.459308026  0.351582444  0.567033608
-[11]  0.466489731  0.667577484  0.581397019  0.753757950  0.696304306
-[16]  0.777906774  0.926118881
+ [1]  0.2579901214  0.0736874447 -0.0001705546  0.1506186183  0.0282235961
+ [6]  0.2730136405  0.1949612363  0.0831681366  0.0535445724  0.1127917007
+[11]  0.0788655488  0.1467178526  0.1041865252  0.1892491801  0.1295075015
+[16]  0.2489908587  0.2165483578  0.1769843322  0.1548284779  0.1991401865
+[21]  0.1801494542  0.2181309188  0.2054704306  0.2199898533  0.2561123833
+[26]  0.2814333597  0.3067543361  0.3510660447  0.3320753124  0.3700567770
+[31]  0.3573962888  0.3719157114  0.4445679659  0.4080382415  0.4826937032
+[36]  0.4333592179  0.5320281886  0.4586801943  0.6053761828  0.4840011706
+[41]  0.7267511950  0.6193101381  0.5773722710  0.5314780013  0.5093221470
+[46]  0.5536338556  0.5346431234  0.5726245879  0.5599640997  0.5744835224
+[51]  0.6124649869  0.6106060525  0.6251254751  0.6504464515  0.8341922520
+[56]  0.7159452706  0.6865689816  0.7453215595  0.7118899579  0.7787531611
+[61]  0.7372109343  0.8202953880  0.7625319107  0.8780588653  0.8416599618
+[66]  0.8068436193  0.7878528870  0.8258343516  0.8131738634  0.8276932860
+[71]  0.8764763043  0.8638158161  0.8783352388  0.9144577689  0.9416376797
+[76]  0.9397787452  0.9542981679
 
 $boxes$y1
- [1]  0.930420747 -0.001907977  0.824474301 -0.001907977  0.718527855
- [6]  0.612581409 -0.001907977  0.506634963 -0.001907977  0.400688517
-[11] -0.001907977  0.294742071 -0.001907977  0.188795625 -0.001907977
-[16] -0.001907977 -0.001907977
+ [1]  0.9774451612  0.8744536976 -0.0006260477  0.8645316457  0.0459086582
+ [6]  0.8080748880  0.7050834243  0.6486266665 -0.0006260477  0.6387046147
+[11]  0.0459086582  0.5822478569 -0.0006260477  0.5257910992  0.0459086582
+[16]  0.4693343414  0.3663428778  0.3098861200 -0.0006260477  0.2999640681
+[21]  0.0459086582  0.2435073104 -0.0006260477  0.0459086582 -0.0006260477
+[26]  0.0459086582 -0.0006260477  0.7516181302  0.0459086582  0.6951613724
+[31] -0.0006260477  0.0459086582  0.9209884035 -0.0006260477  0.8645316457
+[36]  0.0459086582  0.8080748880 -0.0006260477  0.7516181302  0.0459086582
+[41]  0.6951613724  0.5921699088  0.5357131510  0.4792563933 -0.0006260477
+[46]  0.4693343414  0.0459086582  0.4128775836 -0.0006260477  0.0459086582
+[51]  0.5257910992 -0.0006260477  0.0459086582 -0.0006260477  0.6387046147
+[56]  0.5357131510  0.0459086582  0.5257910992 -0.0006260477  0.4693343414
+[61]  0.0459086582  0.4128775836 -0.0006260477  0.3564208259  0.2534293622
+[66]  0.1969726045  0.0459086582  0.1870505526 -0.0006260477  0.0459086582
+[71]  0.2435073104 -0.0006260477  0.0459086582 -0.0006260477  0.5822478569
+[76]  0.0459086582 -0.0006260477
 
 $boxes$x2
- [1] 0.2783428 0.0920673 0.4576032 0.1974990 0.7127863 0.4237227 0.3124062
- [8] 0.5350391 0.4273135 0.6427647 0.5422208 0.7433086 0.6571281 0.8294890
-[15] 0.7720354 0.9202475 1.0018500
+ [1] 0.28869790 0.10439523 0.03053723 0.17518005 0.05278503 0.29757507
+ [7] 0.21952267 0.10772957 0.07810601 0.13735314 0.10342698 0.17127929
+[13] 0.12874796 0.21381061 0.15406894 0.27355229 0.24110979 0.20154577
+[19] 0.17938991 0.22370162 0.20471089 0.24269235 0.23003187 0.26615440
+[25] 0.28067382 0.30599479 0.33131577 0.37562748 0.35663675 0.39461821
+[31] 0.38195772 0.41808025 0.47072541 0.43259968 0.50725514 0.45792065
+[37] 0.55658962 0.48324163 0.62993762 0.50856261 0.75131263 0.64387157
+[43] 0.60193371 0.55603944 0.53388358 0.57819529 0.55920456 0.59718602
+[49] 0.58452553 0.62064806 0.65862953 0.63516749 0.67129002 0.69661099
+[55] 0.85875369 0.74050670 0.71113042 0.76988299 0.73645139 0.80331460
+[61] 0.76177237 0.84485682 0.78709335 0.90262030 0.86622140 0.83140505
+[67] 0.81241432 0.85039579 0.83773530 0.87385783 0.90103774 0.88837725
+[73] 0.92449978 0.93901920 0.98780222 0.96434018 1.00046271
 
 $boxes$y2
- [1] 0.99976511 0.06743639 0.89381867 0.06743639 0.78787222 0.68192578
- [7] 0.06743639 0.57597933 0.06743639 0.47003288 0.06743639 0.36408644
-[13] 0.06743639 0.25813999 0.06743639 0.06743639 0.06743639
+ [1] 0.99993523 0.89694376 0.02186402 0.88702171 0.06839872 0.83056495
+ [7] 0.72757349 0.67111673 0.02186402 0.66119468 0.06839872 0.60473792
+[13] 0.02186402 0.54828116 0.06839872 0.49182441 0.38883294 0.33237618
+[19] 0.02186402 0.32245413 0.06839872 0.26599737 0.02186402 0.06839872
+[25] 0.02186402 0.06839872 0.02186402 0.77410819 0.06839872 0.71765144
+[31] 0.02186402 0.06839872 0.94347847 0.02186402 0.88702171 0.06839872
+[37] 0.83056495 0.02186402 0.77410819 0.06839872 0.71765144 0.61465997
+[43] 0.55820322 0.50174646 0.02186402 0.49182441 0.06839872 0.43536765
+[49] 0.02186402 0.06839872 0.54828116 0.02186402 0.06839872 0.02186402
+[55] 0.66119468 0.55820322 0.06839872 0.54828116 0.02186402 0.49182441
+[61] 0.06839872 0.43536765 0.02186402 0.37891089 0.27591943 0.21946267
+[67] 0.06839872 0.20954062 0.02186402 0.06839872 0.26599737 0.02186402
+[73] 0.06839872 0.02186402 0.60473792 0.06839872 0.02186402
 
 
 $split.labs
 [1] ""
 
 $split.cex
- [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[39] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+[77] 1
 
 $split.box
 $split.box$x1
- [1] 0.1161793        NA 0.3483794        NA 0.5581954 0.2329999        NA
- [8] 0.3786743        NA 0.4555495        NA 0.6339093        NA 0.6459569
-[15]        NA        NA        NA
+ [1] 0.23610436 0.06669615         NA 0.12504245         NA 0.25988199
+ [7] 0.18182958 0.06884197         NA 0.09562507         NA 0.13239168
+[13]         NA 0.17492301         NA 0.23585920 0.20341670 0.16499026
+[19]         NA 0.18191862         NA 0.20840602         NA         NA
+[25]         NA         NA         NA 0.34134115         NA 0.35283521
+[31]         NA         NA 0.43530150         NA 0.46552707         NA
+[37] 0.50645202         NA 0.59105001         NA 0.70833512 0.60617848
+[43] 0.56537820 0.51715183         NA 0.54050220         NA 0.56289969
+[49]         NA         NA 0.61234713         NA         NA         NA
+[55] 0.82106060 0.70161910         NA 0.73099539         NA 0.76442699
+[61]         NA 0.80596922         NA 0.86492721 0.82966589 0.79711872
+[67]         NA 0.81150818         NA         NA 0.86555690         NA
+[73]         NA         NA 0.94151983         NA         NA
 
 $split.box$y1
- [1] 0.9003190        NA 0.7943725        NA 0.6884261 0.5824796        NA
- [8] 0.4765332        NA 0.3705867        NA 0.2646403        NA 0.1586938
-[15]        NA        NA        NA
+ [1] 0.9676824 0.8646910        NA 0.8547689        NA 0.7983122 0.6953207
+ [8] 0.6388639        NA 0.6289419        NA 0.5724851        NA 0.5160284
+[15]        NA 0.4595716 0.3565801 0.3001234        NA 0.2902013        NA
+[22] 0.2337446        NA        NA        NA        NA        NA 0.7418554
+[29]        NA 0.6853986        NA        NA 0.9112257        NA 0.8547689
+[36]        NA 0.7983122        NA 0.7418554        NA 0.6853986 0.5824072
+[43] 0.5259504 0.4694937        NA 0.4595716        NA 0.4031148        NA
+[50]        NA 0.5160284        NA        NA        NA 0.6289419 0.5259504
+[57]        NA 0.5160284        NA 0.4595716        NA 0.4031148        NA
+[64] 0.3466581 0.2436666 0.1872099        NA 0.1772878        NA        NA
+[71] 0.2337446        NA        NA        NA 0.5724851        NA        NA
 
 $split.box$x2
- [1] 0.3458239        NA 0.4861748        NA 0.7916462 0.5387144        NA
- [8] 0.6156728        NA 0.7542488        NA 0.7769768        NA 0.9372901
-[15]        NA        NA        NA
+ [1] 0.3105837 0.1113865        NA 0.2007562        NA 0.3107067 0.2326543
+ [8] 0.1220557        NA 0.1545198        NA 0.1856055        NA 0.2281368
+[15]        NA 0.2866839 0.2542414 0.2135398        NA 0.2409232        NA
+[22] 0.2524172        NA        NA        NA        NA        NA 0.3853524
+[29]        NA 0.4118398        NA        NA 0.4799919        NA 0.5244218
+[36]        NA 0.5821658        NA 0.6442638        NA 0.7697287 0.6570032
+[43] 0.6139278 0.5703656        NA 0.5913269        NA 0.6069109        NA
+[50]        NA 0.6587474        NA        NA        NA 0.8718853 0.7548329
+[57]        NA 0.7842092        NA 0.8176408        NA 0.8591830        NA
+[64] 0.9157520 0.8782155 0.8411299        NA 0.8647220        NA        NA
+[71] 0.9119571        NA        NA        NA 0.9879201        NA        NA
 
 $split.box$y2
- [1] 0.9262286        NA 0.8202821        NA 0.7143357 0.6083892        NA
- [8] 0.5024428        NA 0.3964963        NA 0.2905499        NA 0.1846034
-[15]        NA        NA        NA</code></pre>
+ [1] 0.9760855 0.8730941        NA 0.8631720        NA 0.8067153 0.7037238
+ [8] 0.6472670        NA 0.6373450        NA 0.5808882        NA 0.5244315
+[15]        NA 0.4679747 0.3649832 0.3085265        NA 0.2986044        NA
+[22] 0.2421477        NA        NA        NA        NA        NA 0.7502585
+[29]        NA 0.6938017        NA        NA 0.9196288        NA 0.8631720
+[36]        NA 0.8067153        NA 0.7502585        NA 0.6938017 0.5908103
+[43] 0.5343535 0.4778968        NA 0.4679747        NA 0.4115180        NA
+[50]        NA 0.5244315        NA        NA        NA 0.6373450 0.5343535
+[57]        NA 0.5244315        NA 0.4679747        NA 0.4115180        NA
+[64] 0.3550612 0.2520697 0.1956130        NA 0.1856909        NA        NA
+[71] 0.2421477        NA        NA        NA 0.5808882        NA        NA</code></pre>
 </div>
 </div>
+</section>
 </section>
 <section id="random-forest" class="level3">
 <h3 class="anchored" data-anchor-id="random-forest">Random Forest</h3>
-<p>You should provide a thorough explanation of what a random forest is and why we might use it (be sure to relate this to a basic classification tree). You should then fit a random forest model with varying values for the <code>mtry</code> parameter and choose the best model (based on 5 fold CV on the training set). Include at least 5 predictors in this model.</p>
-</section>
-</section>
-<section id="final-model-selection" class="level2">
-<h2 class="anchored" data-anchor-id="final-model-selection">Final Model Selection</h2>
-<p>We will compare the best models from each of the approaches on the test set and declare an overall winner…</p>
+<p>A random forest is an ensemble learning method, which can be used for classification. It creates a multitude of decision trees during training. For classification tasks, the output of the random forest is the class selected by most trees.</p>
+<p>Random forests have three tuning parameters: the number of predictors that will be randomly sampled at each split when creating tree models (<code>mtry</code>); the number of trees; and the minimal node size. Once we have decided on our model, we follow a similar workflow and cross-validation scheme as for classification trees. (As an alternative to cross-validation, we could use out-of-bag observations.) If using cross-validation, then we check the metrics across the folds, sort by the loss function (same kinds as for classification trees), get the best tuning parameter, and refit across the entire training data set.</p>
+<section id="procedure-1" class="level4">
+<h4 class="anchored" data-anchor-id="procedure-1">Procedure</h4>
 <p>Get the random forest (rf) specification:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>rf_spec <span class="ot">&lt;-</span> <span class="fu">rand_forest</span>(<span class="at">mtry =</span> <span class="fu">tune</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">set_engine</span>(<span class="st">"ranger"</span>, <span class="at">importance=</span><span class="st">"impurity"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co">#mtry=9 for the API.R file (was 11 for Age instead of Income, back to 9 by adding NoDocbcCost; 9 for Income instead of Age)</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>rf_spec <span class="ot">&lt;-</span> <span class="fu">rand_forest</span>(<span class="at">mtry =</span> <span class="fu">tune</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">set_engine</span>(<span class="st">"ranger"</span>, <span class="at">importance=</span><span class="st">"impurity"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a> <span class="fu">set_mode</span>(<span class="st">"classification"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Create the workflow using the same recipe:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>rf_wkf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
-<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">add_recipe</span>(dbhi_recipe) <span class="sc">|&gt;</span></span>
-<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">add_model</span>(rf_spec)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>rf_wkf <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">add_recipe</span>(dbhi_recipe) <span class="sc">|&gt;</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">add_model</span>(rf_spec)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Fit to the cross-validation folds:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="ot">&lt;-</span> rf_wkf <span class="sc">|&gt;</span></span>
-<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">tune_grid</span>(<span class="at">resamples =</span> dbhi_5_fold,</span>
-<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">grid =</span> <span class="dv">7</span>,</span>
-<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">metrics =</span> <span class="fu">metric_set</span>(mn_log_loss))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="ot">&lt;-</span> rf_wkf <span class="sc">|&gt;</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">tune_grid</span>(<span class="at">resamples =</span> dbhi_5_fold,</span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">grid =</span> <span class="dv">7</span>,</span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">metrics =</span> <span class="fu">metric_set</span>(mn_log_loss))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>i Creating pre-processing data to finalize unknown parameter: mtry</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>rf_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Tuning results
+# 5-fold cross-validation 
+# A tibble: 5 × 4
+  splits                 id    .metrics         .notes          
+  &lt;list&gt;                 &lt;chr&gt; &lt;list&gt;           &lt;list&gt;          
+1 &lt;split [142060/35515]&gt; Fold1 &lt;tibble [7 × 5]&gt; &lt;tibble [0 × 3]&gt;
+2 &lt;split [142060/35515]&gt; Fold2 &lt;tibble [7 × 5]&gt; &lt;tibble [0 × 3]&gt;
+3 &lt;split [142060/35515]&gt; Fold3 &lt;tibble [7 × 5]&gt; &lt;tibble [0 × 3]&gt;
+4 &lt;split [142060/35515]&gt; Fold4 &lt;tibble [7 × 5]&gt; &lt;tibble [0 × 3]&gt;
+5 &lt;split [142060/35515]&gt; Fold5 &lt;tibble [7 × 5]&gt; &lt;tibble [0 × 3]&gt;</code></pre>
 </div>
 </div>
 <p>Arrange by the mean log loss:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="sc">|&gt;</span></span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
-<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">arrange</span>(mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>rf_fit <span class="sc">|&gt;</span></span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a> <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a> <span class="fu">arrange</span>(mean)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 7 × 7
    mtry .metric     .estimator  mean     n  std_err .config             
   &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;    &lt;dbl&gt; &lt;chr&gt;               
-1     9 mn_log_loss binary     0.375     5 0.000680 Preprocessor1_Model6
-2     8 mn_log_loss binary     0.375     5 0.000696 Preprocessor1_Model7
-3    10 mn_log_loss binary     0.375     5 0.000663 Preprocessor1_Model3
-4     6 mn_log_loss binary     0.376     5 0.000737 Preprocessor1_Model2
-5     4 mn_log_loss binary     0.376     5 0.000772 Preprocessor1_Model5
-6     3 mn_log_loss binary     0.376     5 0.000757 Preprocessor1_Model1
-7     2 mn_log_loss binary     0.378     5 0.000729 Preprocessor1_Model4</code></pre>
+1     9 mn_log_loss binary     0.370     5 0.000563 Preprocessor1_Model2
+2    12 mn_log_loss binary     0.370     5 0.000590 Preprocessor1_Model7
+3    14 mn_log_loss binary     0.370     5 0.000589 Preprocessor1_Model6
+4    15 mn_log_loss binary     0.370     5 0.000600 Preprocessor1_Model3
+5     6 mn_log_loss binary     0.370     5 0.000515 Preprocessor1_Model5
+6     5 mn_log_loss binary     0.371     5 0.000512 Preprocessor1_Model1
+7     3 mn_log_loss binary     0.373     5 0.000450 Preprocessor1_Model4</code></pre>
 </div>
 </div>
-<p>Obtain the best tuning parameter, use it to refit on the entire training set, then extract the final model:</p>
+<p>Obtain the best tuning parameter, use it to refit on the entire training set, examine <code>mn_log_loss</code>, then extract the final model:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>rf_best_params <span class="ot">&lt;-</span> <span class="fu">select_best</span>(rf_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Obtain best tuning parameter</span></span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>rf_best_params <span class="ot">&lt;-</span> <span class="fu">select_best</span>(rf_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning in select_best(rf_fit): No value of `metric` was given; "mn_log_loss"
 will be used.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>rf_best_params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>rf_best_params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 2
    mtry .config             
   &lt;int&gt; &lt;chr&gt;               
-1     9 Preprocessor1_Model6</code></pre>
+1     9 Preprocessor1_Model2</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb80"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>rf_final_wkf <span class="ot">&lt;-</span> rf_wkf <span class="sc">|&gt;</span></span>
-<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(rf_best_params)</span>
-<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>rf_final_fit <span class="ot">&lt;-</span> rf_final_wkf <span class="sc">|&gt;</span></span>
-<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">last_fit</span>(dbhi_split, <span class="at">metrics =</span> <span class="fu">metric_set</span>(mn_log_loss))</span>
-<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a><span class="co">#Investigate the random forest model</span></span>
-<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a><span class="co">#Refit to the entire data set</span></span>
-<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>rf_full_fit <span class="ot">&lt;-</span> rf_final_wkf <span class="sc">|&gt;</span></span>
-<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(dbhi_data)</span>
-<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>rf_full_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Refit on the entire training set</span></span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>rf_final_wkf <span class="ot">&lt;-</span> rf_wkf <span class="sc">|&gt;</span></span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(rf_best_params)</span>
+<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>rf_final_fit <span class="ot">&lt;-</span> rf_final_wkf <span class="sc">|&gt;</span></span>
+<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">last_fit</span>(dbhi_split, <span class="at">metrics =</span> <span class="fu">metric_set</span>(mn_log_loss))</span>
+<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-8"><a href="#cb79-8" aria-hidden="true" tabindex="-1"></a><span class="co">#Examine mn_log_loss</span></span>
+<span id="cb79-9"><a href="#cb79-9" aria-hidden="true" tabindex="-1"></a>rf_final_fit <span class="sc">|&gt;</span> <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 4
+  .metric     .estimator .estimate .config             
+  &lt;chr&gt;       &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;               
+1 mn_log_loss binary         0.375 Preprocessor1_Model1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Extract the final model</span></span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>rf_final_model <span class="ot">&lt;-</span> <span class="fu">extract_fit_engine</span>(rf_final_fit)</span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a><span class="fu">attributes</span>(rf_final_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$names
+ [1] "predictions"               "num.trees"                
+ [3] "num.independent.variables" "mtry"                     
+ [5] "min.node.size"             "variable.importance"      
+ [7] "prediction.error"          "forest"                   
+ [9] "splitrule"                 "treetype"                 
+[11] "call"                      "importance.mode"          
+[13] "num.samples"               "replace"                  
+[15] "max.depth"                
+
+$class
+[1] "ranger"</code></pre>
+</div>
+</div>
+<p>Produce a variable importance plot to examine the final model:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">&lt;-</span> <span class="fu">enframe</span>(rf_final_model<span class="sc">$</span>variable.importance,</span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">name =</span> <span class="st">"variable"</span>,</span>
+<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">value =</span> <span class="st">"importance"</span>)</span>
+<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(imp, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(variable, <span class="sc">-</span>importance), <span class="at">y =</span> importance)) <span class="sc">+</span></span>
+<span id="cb83-5"><a href="#cb83-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">'identity'</span>) <span class="sc">+</span> </span>
+<span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">'term'</span>) <span class="sc">+</span></span>
+<span id="cb83-7"><a href="#cb83-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">'value'</span>) <span class="sc">+</span></span>
+<span id="cb83-8"><a href="#cb83-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Modeling_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The most important predictor of diabetes status, among those we considered, is whether or not the respondent has been diagnosed with heart disease or a heart attack. Stroke is less important but next in line. Older age, with alcohol consumption, not having a doctor because of cost, male sex, and younger ages are less importance.</p>
+</section>
+</section>
+</section>
+<section id="final-model-selection" class="level2">
+<h2 class="anchored" data-anchor-id="final-model-selection">Final Model Selection</h2>
+<p>Random forest is best on the test set, so we will fit it to the entire data set:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Investigate the random forest model</span></span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Refit to the entire data set</span></span>
+<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>best_model <span class="ot">&lt;-</span> rf_final_wkf <span class="sc">|&gt;</span></span>
+<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(dbhi_data)</span>
+<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a>best_model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>══ Workflow [trained] ══════════════════════════════════════════════════════════
 Preprocessor: Recipe
@@ -957,57 +1283,12 @@ Call:
 Type:                             Probability estimation 
 Number of trees:                  500 
 Sample size:                      253680 
-Number of independent variables:  11 
+Number of independent variables:  17 
 Mtry:                             9 
 Target node size:                 10 
 Variable importance mode:         impurity 
 Splitrule:                        gini 
-OOB prediction error (Brier s.):  0.1128596 </code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="co">#rf_final_model &lt;- extract_fit_engine(rf_full_fit)</span></span>
-<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>rf_final_model <span class="ot">&lt;-</span> <span class="fu">extract_fit_engine</span>(rf_final_fit)</span>
-<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a><span class="fu">attributes</span>(rf_final_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>$names
- [1] "predictions"               "num.trees"                
- [3] "num.independent.variables" "mtry"                     
- [5] "min.node.size"             "variable.importance"      
- [7] "prediction.error"          "forest"                   
- [9] "splitrule"                 "treetype"                 
-[11] "call"                      "importance.mode"          
-[13] "num.samples"               "replace"                  
-[15] "max.depth"                
-
-$class
-[1] "ranger"</code></pre>
-</div>
-</div>
-<p>Collect the metrics:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>rf_final_fit <span class="sc">|&gt;</span> <span class="fu">collect_metrics</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 4
-  .metric     .estimator .estimate .config             
-  &lt;chr&gt;       &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;               
-1 mn_log_loss binary         0.381 Preprocessor1_Model1</code></pre>
-</div>
-</div>
-<p>Produce a variable importance plot to examine the final model:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">&lt;-</span> <span class="fu">enframe</span>(rf_final_model<span class="sc">$</span>variable.importance,</span>
-<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">name =</span> <span class="st">"variable"</span>,</span>
-<span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">value =</span> <span class="st">"importance"</span>)</span>
-<span id="cb86-4"><a href="#cb86-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(imp, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(variable, <span class="sc">-</span>importance), <span class="at">y =</span> importance)) <span class="sc">+</span></span>
-<span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">'identity'</span>) <span class="sc">+</span> </span>
-<span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">'term'</span>) <span class="sc">+</span></span>
-<span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">'value'</span>) <span class="sc">+</span></span>
-<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="Modeling_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
+OOB prediction error (Brier s.):  0.1120441 </code></pre>
 </div>
 </div>
 
@@ -1050,18 +1331,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -1093,7 +1363,29 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
       var filterRegex = new RegExp('/' + window.location.host + '/');
@@ -1101,7 +1393,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
     // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
     for (var i=0; i<links.length; i++) {
       const link = links[i];
       if (!isInternal(link.href)) {
