@@ -8,7 +8,7 @@ editor: visual
 
 ## Introduction
 
-Write an intro! We will include 5 predictors in this model: age, sex, stroke, heart disease or attack, and heavy alcohol consumption.
+Write an intro! We will include 6 predictors in this model: age, sex, no doctor because of cost, stroke, heart disease or attack, and heavy alcohol consumption.  (We tried income but swapped it for age in a 5-predictor model.)
 
 We will load the libraries and read in the data here:
 
@@ -49,7 +49,6 @@ dbhi_data <- data |>
            factor(CholCheck,
                   levels=c("0","1"),
                   labels=c("no cholesterol check in 5 years","yes cholesterol check in 5 years")),
-         #BMI=factor(BMI),
          Smoker=
            factor(Smoker,
                   levels=c("0","1"),
@@ -90,10 +89,6 @@ dbhi_data <- data |>
            factor(GenHlth,
                   levels=c("1","2","3","4","5"),
                   labels=c("excellent","very good","good","fair","poor")),
-         #MentHlth=
-           #factor(MentHlth),
-         #PhysHlth=
-           #factor(PhysHlth),
          DiffWalk=
            factor(DiffWalk,
                   levels=c("0","1"),
@@ -150,10 +145,10 @@ Get a recipe. Then, standardize the numeric variables since their scales are pre
 #bystanders
 
 #dbhi_train
-#Diabetes_binary ~ Age + Sex + Income + Stroke + HeartAttackorDisease + HvyAlcoholConsump
+#Diabetes_binary ~ Age + Sex + NoDocbcCost + Stroke + HeartAttackorDisease + HvyAlcoholConsump
 
 dbhi_recipe <- recipe(Diabetes_binary ~ ., data = dbhi_train) |>
-  update_role(Income,Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,NoDocbcCost,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") |>
+  update_role(Income,Smoker,BMI,HighBP,HighChol,CholCheck,PhysActivity,Fruits,Veggies,AnyHealthcare,GenHlth,MentHlth,PhysHlth,DiffWalk,Education,new_role = "bystander") |>
   step_dummy(all_nominal_predictors()) |>
   step_normalize(all_numeric(), -all_outcomes()) #|>
 #  summary()
@@ -323,7 +318,7 @@ Random forests have three tuning parameters:  the number of predictors that will
 Get the random forest (rf) specification:
 
 ```{r}
-#mtry=11 for the API.R file (was 9 for Income instead of Age)
+#mtry=9 for the API.R file (was 11 for Age instead of Income, back to 9 by adding NoDocbcCost; 9 for Income instead of Age)
 rf_spec <- rand_forest(mtry = tune()) |>
  set_engine("ranger", importance="impurity") |>
  set_mode("classification")
@@ -395,6 +390,8 @@ ggplot(imp, aes(x = reorder(variable, -importance), y = importance)) +
   ylab('value') +
   coord_flip()
 ```
+
+The most important predictor of diabetes status, among those we considered, is whether or not the respondent has been diagnosed with heart disease or a heart attack.  Stroke is less important but next in line.  Older age, with alcohol consumption, not having a doctor because of cost, male sex, and younger ages are less importance.
 
 ## Final Model Selection
 

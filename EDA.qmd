@@ -184,7 +184,7 @@ table(data$Sex,dnn="Sex")
 ```
 
 ```{r}
-table(data$Income,dnn="Income")
+table(data$NoDocbcCost,dnn="No Doctor Because of Cost")
 
 ```
 
@@ -220,10 +220,10 @@ print(ascii(table(data$Sex,data$Diabetes_binary,dnn=c("Sex","Diabetes_binary")))
 
 ```
 
-`Diabetes_binary` vs. `Income`:
+`Diabetes_binary` vs. `NoDocbcCost`:
 
 ```{r}
-print(ascii(table(data$Income,data$Diabetes_binary,dnn=c("Income","Diabetes_binary"))),type="rest")
+print(ascii(table(data$NoDocbcCost,data$Diabetes_binary,dnn=c("No Doctor Because of Cost","Diabetes_binary"))),type="rest")
 
 ```
 
@@ -419,6 +419,62 @@ ggplot(data |> filter(Age == "80 or older"),
 ```
 
 The results are, perhaps, not surprising. In the youngest age bracket, there are almost no incidences of stroke, regardless of diabetic status. There are also few instances of diabetes. With increasing age, more respondents report having strokes, regardless of diabetes status. However, the proportion of strokes is higher among prediabetics and diabetics than among nondiabetics.
+
+Finally for this section, we will look for relationships between diabetes status, no doctor because of cost, and age:
+
+```{r}
+ggplot(data |> filter(Age %in% c("18 to 24","25 to 29")), 
+       aes(
+         x = Diabetes_binary, fill = NoDocbcCost)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("NoDocbcCost") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of No Doctor Because of Cost vs. Diabetes Status, by Sex and Age 18 to 29",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("30 to 34","35 to 39")), 
+       aes(
+         x = Diabetes_binary, fill = NoDocbcCost)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("NoDocbcCost") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of No Doctor Because of Cost vs. Diabetes Status, by Sex and Age 30 to 39",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("40 to 44","45 to 49")), 
+       aes(
+         x = Diabetes_binary, fill = NoDocbcCost)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("NoDocbcCost") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of No Doctor Because of Cost vs. Diabetes Status, by Sex and Age 40 to 49",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("50 to 54","55 to 59")), 
+       aes(
+         x = Diabetes_binary, fill = NoDocbcCost)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("NoDocbcCost") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of No Doctor Because of Cost vs. Diabetes Status, by Sex and Age 50 to 59",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("60 to 64","65 to 69")), 
+       aes(
+         x = Diabetes_binary, fill = NoDocbcCost)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("NoDocbcCost") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of No Doctor Because of Cost vs. Diabetes Status, by Sex and Age 60 to 69",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age %in% c("70 to 74","75 to 79")), 
+       aes(
+         x = Diabetes_binary, fill = NoDocbcCost)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("NoDocbcCost") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of No Doctor Because of Cost vs. Diabetes Status, by Sex and Age 70 to 79",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(data |> filter(Age == "80 or older"), 
+       aes(
+         x = Diabetes_binary, fill = NoDocbcCost)) +
+  geom_bar(position = "dodge") +
+  scale_fill_discrete("NoDocbcCost") +
+  facet_wrap(~ Sex) + ggtitle(str_wrap("Bar Chart of Counts of No Doctor Because of Cost vs. Diabetes Status, by Sex and Age 80 or Older",30)) + theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+Seemingly separate from diabetes status, it appears that not having a doctor because of cost is associated more with age (younger people report more often that they have no doctors because of cost.)
 
 ### Scatterplots & Histograms For Numeric Variables
 
