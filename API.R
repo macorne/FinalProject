@@ -128,12 +128,13 @@ best_model <- rf_wkf |>
   fit(dbhi_data)
 
 #* info endpoint
-#* @post /info
+#* @get /info
 function(){
   "My name is Matthew Corne.  The link to my Github Pages URL is https://macorne.github.io/FinalProject.  Please note that you will need to type /EDA.html or /Modeling.html to get to the EDA and Modeling pages (it will probably land you on the Modeling page first)."
 }
 
-#http://127.0.0.1:9071/info
+#http://localhost:9000/info
+#http://127.0.0.1:9071/__docs__/info
 
 
 #* pred endpoint 
