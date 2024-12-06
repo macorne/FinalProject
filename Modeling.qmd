@@ -115,7 +115,7 @@ dbhi_data <- data |>
 
 ## Split the Data
 
-Set the seed. Then, use functions from tidymodels to split the data into a training and test set (70/30 split). Then, use the strata argument to stratify the split on the `Sex` variable.
+Set the seed. Then, use functions from tidymodels to split the data into a training and test set (70/30 split).  We use the strata argument to stratify the split on the `Sex` variable, which is an attempt to ensure that each stratum representatively samples the overall population within that category.
 
 ```{r}
 set.seed(11)
@@ -406,3 +406,4 @@ best_model <- rf_final_wkf |>
 best_model
 
 ```
+

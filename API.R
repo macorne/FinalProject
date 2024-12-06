@@ -128,33 +128,45 @@ best_model <- rf_wkf |>
   fit(dbhi_data)
 
 #* info endpoint
-#* @get /info
+#* @post /info
 function(){
-  "Name:  Matthew Corne; Github Pages URL:  TBD"
+  "My name is Matthew Corne.  The link to my Github Pages URL is https://macorne.github.io/FinalProject.  Please note that you will need to type /EDA.html or /Modeling.html to get to the EDA and Modeling pages (it will probably land you on the Modeling page first)."
 }
 
-#http://localhost:9000/info
-#http://127.0.0.1:9071/__docs__/info
+#http://127.0.0.1:9071/info
 
 
 #* pred endpoint 
-#* @param Sex female or male
-#* @param Age 18 to 24, 25 to 29, 30 to 34, 35 to 39, 40 to 44, 45 to 49, 50 to 54, 55 to 59, 60 to 64, 65 to 69, 70 to 74, 75 to 79, 80 or older
-#* @param NoDocbcCost 
-#* @param Stroke no or yes
-#* @param HeartDiseaseorAttack no or yes
-#* @param HvyAlcoholConsump no or yes
+#* @param sex female or male
+#* @param age 18 to 24, 25 to 29, 30 to 34, 35 to 39, 40 to 44, 45 to 49, 50 to 54, 55 to 59, 60 to 64, 65 to 69, 70 to 74, 75 to 79, 80 or older
+#* @param noDocbcCost no or yes
+#* @param stroke no or yes
+#* @param heartDiseaseorAttack no or yes
+#* @param hvyAlcoholConsump no or yes
 #* @get /pred
-function(Sex = "female", 
-         Age = "60 to 64", 
-         Stroke = "no", 
-         HeartDiseaseorAttack = "no", 
-         HvyAlcoholConsump = "no"){
+function(sex = "female", 
+         age = "60 to 64", 
+         noDocbcCost = "no",
+         stroke = "no", 
+         heartDiseaseorAttack = "no", 
+         hvyAlcoholConsump = "no"){
+  
+  prdct <- dbhi_data |> 
+    mutate(
+      estimate = best_model |> 
+        predict(dbhi_data) |>
+        pull()) |>
+    select(Diabetes_binary,Sex,Age,NoDocbcCost,Stroke,HeartDiseaseorAttack,HvyAlcoholConsump,estimate) |> 
+    filter(Sex == sex, Age == age, NoDocbcCost == noDocbcCost, Stroke == stroke, HeartDiseaseorAttack == heartDiseaseorAttack, HvyAlcoholConsump == hvyAlcoholConsump)
+  
+  print(prdct$estimate[1])
   
 }
 
-#http://localhost:9000/pred?Sex=female&Income=$35,000%20to%20less%20than%20$50,000&Stroke=no&HeartDiseaseorAttack=no&HvyAlcoholConsump=no
-#http://127.0.0.1:9071/__docs__/pred?Sex=female&Income=$35,000%20to%20less%20than%20$50,000&Stroke=no&HeartDiseaseorAttack=no&HvyAlcoholConsump=no
+#URLs to test
+#http://127.0.0.1:9071/pred?sex=female&age=60%20to%2064&noDocbcCost=no&stroke=yes&heartDiseaseorAttack=yes&hvyAlcoholConsump=no
+#http://127.0.0.1:9071/pred?sex=male&age=45%20to%2049&noDocbcCost=yes&stroke=yes&heartDiseaseorAttack=yes&hvyAlcoholConsump=no
+#http://127.0.0.1:9071/pred?sex=male&age=45%20to%2049&noDocbcCost=no&stroke=yes&heartDiseaseorAttack=yes&hvyAlcoholConsump=no
 
 #* confusion endpoint
 #* @get /confusion
@@ -178,5 +190,4 @@ function(type = "heatmap"){
   print(cmplot)
 }
 
-#http://localhost:9000/confusion?type=heatmap
-#http://127.0.0.1:9071/__docs__/confusion?type=heatmap
+#http://127.0.0.1:9071/confusion?type=heatmap
